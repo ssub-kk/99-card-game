@@ -65,8 +65,10 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;min-height:32px}
 
 /* 상단 */
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.top .name{font-size:22px;display:flex;align-items:center;gap:8px}
-.top .meta{font-size:13px;color:var(--muted);text-align:right}
+.top .name{font-size:22px;display:flex;align-items:center;gap:8px;white-space:nowrap;min-width:0}
+.top .meta{font-size:13px;color:var(--muted);text-align:right;white-space:nowrap;flex:none}
+.top .tag{white-space:nowrap;flex:none}
+@media (max-width:400px){ .wrap{padding-left:14px;padding-right:14px} .top .name{font-size:19px;gap:6px} .top .meta{font-size:12px} .top .tag{font-size:11px;padding:2px 8px} }
 /* 플레이어 */
 .players{display:flex;gap:8px}
 .pl{flex:1;min-width:0;padding:6px;border-radius:12px;background:var(--panel);border:2px solid transparent;text-align:center}
@@ -95,16 +97,18 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;min-height:32px}
 .log b{color:var(--ink)}
 /* 손패 */
 .hand{display:flex;gap:10px}
-.card{position:relative;flex:1;min-width:0;height:196px;border:3px solid transparent;border-radius:16px;background:var(--ivory);color:var(--card-ink);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;font:inherit;cursor:pointer;transition:transform .12s}
+.card{position:relative;flex:1;min-width:0;border:3px solid transparent;border-radius:16px;background:var(--ivory);color:var(--card-ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 0;font:inherit;cursor:pointer;transition:transform .12s}
 .card:not(:disabled):hover{transform:translateY(-6px)}
 .card:disabled{cursor:default}
 .card.off{opacity:.55}
 .card.sel{transform:translateY(-8px);outline:3px solid var(--teal)}
 .card.risky{border-color:var(--vermil)}
-.card .rk{font-family:"Do Hyeon",sans-serif;font-size:28px;line-height:1;color:var(--card-sub)}
-.card .hint{height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+.card .rk{font-family:"Do Hyeon",sans-serif;font-size:24px;line-height:1;color:var(--card-sub)}
+.card .hint{height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;
   font-family:"Do Hyeon",sans-serif;font-size:36px;line-height:1.05;color:var(--card-ink)}
+.card.one .hint{font-size:48px;line-height:1}
+.hand.allone .card .hint{height:60px}
 .card .warn{position:absolute;top:6px;right:6px;padding:2px 8px;border-radius:99px;background:var(--vermil);color:#14202a;font-size:11px;font-weight:700}
 .lastc{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:var(--panel);border:1px solid var(--line)}
 .lastc .mc{width:44px;height:60px;border-radius:8px;background:var(--ivory);color:var(--card-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:none;font-family:"Do Hyeon",sans-serif;font-size:18px;line-height:1}
@@ -540,7 +544,7 @@ function homeHTML(){
     '<p class="sub" style="margin-top:8px">없는 번호면 새 방이 만들어지고, 있는 번호면 그 방에 들어가요.</p>'+
     '<button class="btn full" style="margin-top:12px" data-act="join"'+(S.joining?' disabled':'')+'>'+(S.joining?'입장 중…':'입장하기')+'</button>'+
     rulesDetailsHTML()+'</div>';
-  h+='<div class="panel"><h2>혼자 하기</h2><p class="sub">봇과 대결해요. 닉네임은 위 칸을 쓰고, 비워두면 "나"로 시작해요.</p>'+
+  h+='<div class="panel"><h2>혼자 하기</h2><p class="sub">봇과 대결해요. 닉네임은 비워두면 "나"로 시작해요.</p>'+
     '<div class="row" style="margin-top:10px"><span class="sub">봇 수</span>';
   [1,2,3].forEach(function(n){
     h+='<button class="btn sm'+(S.botCount===n?'':' ghost')+'" data-act="bots" data-n="'+n+'" aria-pressed="'+(S.botCount===n)+'">'+n+'명</button>';
@@ -584,11 +588,12 @@ function tankHTML(total){
 }
 function handHTML(g){
   var me=S.uid, myTurn=g.status==="playing"&&g.turn===me;
-  var h='<div class="hand">';
+  var allOne=(g.hands[me]||[]).every(function(c){ return !face(c).bottom; });
+  var h='<div class="hand'+(allOne?' allone':'')+'">';
   (g.hands[me]||[]).forEach(function(c){
     var f=face(c), risky=isRisky(c,g.total);
-    h+='<button class="card'+(risky?' risky':'')+(S.pending===c?' sel':'')+(myTurn?'':' off')+'" data-act="pick" data-card="'+esc(c)+'"'+((myTurn&&!S.busy)?'':' disabled')+'>'+
-      '<span class="rk">'+esc(rank(c))+'</span>'+dropSVG(f.drop,52,66)+
+    h+='<button class="card'+(f.bottom?'':' one')+(risky?' risky':'')+(S.pending===c?' sel':'')+(myTurn?'':' off')+'" data-act="pick" data-card="'+esc(c)+'"'+((myTurn&&!S.busy)?'':' disabled')+'>'+
+      '<span class="rk">'+esc(rank(c))+'</span>'+dropSVG(f.drop,40,51)+
       '<span class="hint"><span>'+esc(f.top)+'</span><span>'+esc(f.bottom)+'</span></span>'+
       (risky?'<span class="warn">초과!</span>':'')+'</button>';
   });
@@ -639,22 +644,20 @@ function gameHTML(){
   var inGame=g.order.indexOf(me)>=0;
   var isHost=g.hostId===me;
   var h='<div class="top"><div class="name disp">'+dropSVG(BLUE,22,28)+'99 카드게임<span class="tag" style="font-family:\'Noto Sans KR\',sans-serif">'+(S.solo?'봇 대전':'방 '+esc(S.code))+'</span></div>'+
-    '<span class="meta">덱 '+g.deck.length+'장 · '+(g.dir===1?'진행 방향 →':'← 방향 반대')+'</span></div>';
-  h+='<div class="players">';
+    '<span class="meta">덱 '+g.deck.length+'장 · '+(g.dir===1?'방향 →':'← 방향')+'</span></div>';
+  var ph='<div class="players">';
   g.order.forEach(function(id){
     var isTurn=playing&&g.turn===id, n=(g.hands[id]||[]).length, b="";
     for(var i=0;i<n;i++) b+='<span class="back"></span>';
-    h+='<div class="pl'+(isTurn?' turn':'')+'"><div class="pn">'+esc(nickOf(g,id))+(id===me?' (나)':'')+'</div><div class="ps">'+b+'</div></div>';
+    ph+='<div class="pl'+(isTurn?' turn':'')+'"><div class="pn">'+esc(nickOf(g,id))+(id===me?' (나)':'')+'</div><div class="ps">'+b+'</div></div>';
   });
-  h+='</div>';
+  ph+='</div>';
+  h+=ph;
   if(myTurn) h+='<div class="banner me">내 차례예요! 카드를 한 장 내세요</div>';
   else if(playing&&inGame) h+='<div class="banner">'+esc(nickOf(g,g.turn))+'님 차례예요…</div>';
   else if(playing) h+='<div class="banner">관전 중</div>';
   else h+='<div class="banner"></div>';
   h+=tankHTML(g.total);
-  h+='<div class="log">';
-  g.log.slice(-2).reverse().forEach(function(l,i){ h+= i===0?'<b>'+esc(l)+'</b>':'<span>'+esc(l)+'</span>'; });
-  h+='</div>';
   if(playing&&g.lastCard){ var lf=face(g.lastCard);
     h+='<div class="lastc"><div class="mc"><span>'+esc(rank(g.lastCard))+'</span>'+bareDrop(lf.drop,18,23)+'</div><div class="tx"><small>마지막으로 낸 카드'+(g.lastBy?' · '+esc(nickOf(g,g.lastBy)):'')+'</small><b>'+esc(g.lastLabel||lf.top)+' · 합계 '+g.prevTotal+' → '+g.total+'</b></div></div>';
   }
