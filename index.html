@@ -55,7 +55,6 @@ input[type=text]:focus{outline:2px solid var(--teal);outline-offset:1px}
 .btn.full{width:100%}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .tag{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--chip);color:var(--ink)}
-.tag.off{color:var(--notice)}
 .notice{border:1px solid var(--notice);color:var(--notice);border-radius:12px;padding:10px 12px;font-size:14px}
 .roomcode{font-family:"Do Hyeon",sans-serif;font-size:44px;letter-spacing:.14em;line-height:1.1;color:var(--turn)}
 .plist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -63,18 +62,21 @@ input[type=text]:focus{outline:2px solid var(--teal);outline-offset:1px}
 details summary{cursor:pointer;font-weight:700;font-size:14px;min-height:32px}
 .rlist{display:flex;flex-direction:column;gap:8px;margin:10px 0 0;padding:0;list-style:none}
 .rlist li{display:flex;align-items:center;gap:10px;font-size:15px}
+
+/* 상단 */
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .top .name{font-size:22px;display:flex;align-items:center;gap:8px}
 .top .meta{font-size:13px;color:var(--muted);text-align:right}
+/* 플레이어 */
 .players{display:flex;gap:8px}
 .pl{flex:1;min-width:0;padding:6px;border-radius:12px;background:var(--panel);border:2px solid transparent;text-align:center}
 .pl.turn{border-color:var(--turn)}
-.pl.offline{opacity:.55}
 .pl .pn{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pl .ps{display:flex;justify-content:center;gap:3px;margin-top:5px;min-height:14px}
 .back{width:10px;height:14px;border-radius:2px;background:#cfc6b2}
 .banner{text-align:center;font-size:15px;font-weight:700;min-height:22px}
 .banner.me{color:var(--turn)}
+/* 탱크 */
 .tank{position:relative;height:330px;border-radius:28px;border:2px solid var(--line);background:var(--tank);overflow:hidden}
 .liquid{position:absolute;left:0;right:0;bottom:0;height:0;background:var(--teal);color:var(--teal);
   transition:height .7s cubic-bezier(.3,.8,.3,1),background .5s,color .5s}
@@ -91,6 +93,7 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;min-height:32px}
 .plate .num{font-family:"Do Hyeon",sans-serif;font-size:104px;line-height:1}
 .log{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px;min-height:36px}
 .log b{color:var(--ink)}
+/* 손패 */
 .hand{display:flex;gap:10px}
 .card{position:relative;flex:1;min-width:0;height:196px;border:3px solid transparent;border-radius:16px;background:var(--ivory);color:var(--card-ink);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;font:inherit;cursor:pointer;transition:transform .12s}
@@ -103,11 +106,17 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;min-height:32px}
 .card .hint{height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;
   font-family:"Do Hyeon",sans-serif;font-size:36px;line-height:1.05;color:var(--card-ink)}
 .card .warn{position:absolute;top:6px;right:6px;padding:2px 8px;border-radius:99px;background:var(--vermil);color:#14202a;font-size:11px;font-weight:700}
+.lastc{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:var(--panel);border:1px solid var(--line)}
+.lastc .mc{width:44px;height:60px;border-radius:8px;background:var(--ivory);color:var(--card-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:none;font-family:"Do Hyeon",sans-serif;font-size:18px;line-height:1}
+.lastc .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.lastc .tx small{font-size:12px;font-weight:700;color:var(--muted)}
+.lastc .tx b{font-size:16px;color:var(--ink)}
 .choice{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
 .choice .msg{width:100%;text-align:center;font-size:13px;color:var(--vermil);font-weight:700}
 .btn.over{background:var(--vermil);border-color:var(--vermil);color:#14202a}
-.rulebar{min-height:46px;border-radius:14px;background:var(--panel);color:var(--muted);font:inherit;font-size:14px;font-weight:700;
+.rulebar{min-height:46px;border:0;border-radius:14px;background:var(--panel);color:var(--muted);font:inherit;font-size:14px;font-weight:700;
   display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;border:1px solid var(--line)}
+/* 룰 시트 */
 .scrim{position:fixed;inset:0;border:0;padding:0;background:rgba(10,20,26,.7);z-index:30;cursor:pointer}
 .sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:440px;z-index:31;background:var(--ivory);color:var(--card-ink);
   border-radius:24px 24px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;max-height:90vh;overflow:auto}
@@ -115,6 +124,7 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;min-height:32px}
 .sheet .rule99{padding:10px 14px;border-radius:12px;background:var(--vermil);color:#14202a;font-size:15px;font-weight:700}
 .sheet .btn.ghost{color:var(--card-ink);border-color:var(--card-ink)}
 .sheet .foot{font-size:13px;color:var(--card-sub)}
+/* 종료 오버레이 */
 .end{position:fixed;inset:0;z-index:40;background:var(--vermil);color:#14202a;overflow:auto;display:flex;justify-content:center}
 .end .in{width:100%;max-width:440px;min-height:100%;padding:56px 24px calc(28px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;justify-content:space-between;gap:20px;position:relative}
 .end .surface{position:absolute;left:0;right:0;top:0;height:28px;display:block;width:100%}
@@ -122,7 +132,7 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;min-height:32px}
 .end .big{font-family:"Do Hyeon",sans-serif;line-height:.95}
 .end .pill{padding:5px 14px;border-radius:99px;background:#14202a;color:#f6f1e6;font-size:15px;font-weight:700}
 .end .res{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:20px;background:var(--ivory)}
-.end .mini{width:50px;height:70px;border-radius:9px;background:#fff;border:1px solid #cfc6b2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:none;color:#14202a}
+.end .mini{width:50px;height:70px;border-radius:9px;background:#fff;border:1px solid #cfc6b2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:none}
 .end .btns{display:flex;gap:12px}
 .end .btns .btn{flex:1;min-height:54px;font-size:16px;background:#14202a;border-color:#14202a;color:#f6f1e6}
 .end .btns .btn.ghost{background:transparent;color:#14202a}
@@ -139,628 +149,590 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;min-height:32px}
 <div class="wrap" id="app"></div>
 <div id="toast" role="status"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-/* =====================================================================
-   99 카드게임 - 독립 실행판
-   - 서버/가입 없이 이 파일 하나만 웹에 올리면 동작해요.
-   - 방장 브라우저가 게임을 진행하고, 공개 MQTT 중계 서버(웹소켓)로 메시지를 주고받아요.
-   ===================================================================== */
-function createApp(env){
-  "use strict";
-  var T = {probe:1500, hello:6000, hb:8000, hostRefresh:10000, sweep:5000, offline:22000, drop:60000, connect:7000, busy:3500};
-  var k; for(k in (env.timing||{})) T[k]=env.timing[k];
-  var BROKERS = env.brokers || [
-    "wss://broker.hivemq.com:8884/mqtt",
-    "wss://broker.emqx.io:8084/mqtt",
-    "wss://test.mosquitto.org:8081"
-  ];
-  var doc=env.document, LS=env.localStorage;
-  var MAX_PLAYERS=6;
-  var SUITS=["S","H","D","C"], RANKS=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-  var BLUE="#38b6e8", MINT="#6fd8b0", ORANGE="#ff7a3d";
+(function(){
+"use strict";
 
-  function lsGet(k){ try{ return LS.getItem(k); }catch(e){ return null; } }
-  function lsSet(k,v){ try{ LS.setItem(k,v); }catch(e){} }
-  function lsDel(k){ try{ LS.removeItem(k); }catch(e){} }
-  function rid(n){ var s="",c="abcdefghijklmnopqrstuvwxyz0123456789"; for(var i=0;i<n;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; }
-  function now(){ return Date.now(); }
+var S = {
+  uid:null, ready:false, peer:null, conns:{}, hostConn:null, isHostNet:false, net:false,
+  nick:"", codeInput:"",
+  code:null, game:null, players:[], unsubs:[],
+  pending:null, busy:false, joining:false, rulesOpen:false,
+  solo:false, botCount:2, botTimer:null, realUid:null,
+  prevFill:0, prevColor:"#2fc9a8"
+};
+try{ S.nick = localStorage.getItem("g99_nick") || ""; }catch(e){}
 
-  var S={
-    uid:lsGet("g99_uid")||"", nick:lsGet("g99_nick")||"", codeInput:"",
-    code:null, view:null, net:null, joining:false, conn:"ok", hostGone:false,
-    pending:null, busy:false, rulesOpen:false, rejected:null,
-    prevFill:0, prevColor:"#2fc9a8", timers:[]
-  };
-  if(!S.uid){ S.uid=rid(12); lsSet("g99_uid",S.uid); }
-  try{
-    var q=(env.location&&env.location.search)||"";
-    var m=/[?&]room=([A-Za-z0-9_-]{1,12})/.exec(q); if(m) S.codeInput=m[1].toUpperCase();
-  }catch(e){}
-  var G=null; // 방장만 가지는 전체 게임 상태
+var SUITS = ["S","H","D","C"];
+var RANKS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+var MAX_PLAYERS = 6;
+var BOT_NAMES = ["방울봇","물결봇","거품봇"];
+var BLUE="#38b6e8", MINT="#6fd8b0", ORANGE="#ff7a3d";
 
-  /* ---------- 유틸 ---------- */
-  function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
-  function sanitize(c){ return String(c||"").toUpperCase().replace(/[^A-Z0-9_-]/g,"").slice(0,12); }
-  function cleanNick(n){ return String(n||"").replace(/\s+/g," ").trim().slice(0,10)||"손님"; }
-  function clone(o){ return JSON.parse(JSON.stringify(o)); }
-  function rank(c){ return c.slice(0,-1); }
-  function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
-  function makeDeck(){ var d=[]; SUITS.forEach(function(s){ RANKS.forEach(function(r){ d.push(r+s); }); }); return d; }
-  function randCode(){ var s=""; for(var i=0;i<4;i++) s+=Math.floor(Math.random()*10); return s; }
-  function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
-  async function waitUntil(fn,ms){
-    var t0=now();
-    while(now()-t0<ms){ if(fn()) return true; await sleep(40); }
-    return !!fn();
-  }
-  var toastTimer=null;
-  function toast(msg){
-    var t=doc.getElementById("toast"); if(!t) return;
-    t.textContent=msg; t.className="show";
-    clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.className=""; },3800);
-  }
+/* ---------- 유틸 ---------- */
+function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+function sanitize(c){ return String(c||"").toUpperCase().replace(/[^A-Z0-9_-]/g,"").slice(0,12); }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function rank(c){ return c.slice(0,-1); }
+function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function makeDeck(){ var d=[]; SUITS.forEach(function(s){ RANKS.forEach(function(r){ d.push(r+s); }); }); return d; }
+function randCode(){ var s=""; for(var i=0;i<4;i++) s+=Math.floor(Math.random()*10); return s; }
 
-  /* ---------- 규칙 (99를 넘기면 그 사람이 지고 게임 종료) ---------- */
-  function options(card,total){
-    var r=rank(card), out=[];
-    function add(n,label){ out.push({label:label,total:total+n,over:total+n>99}); }
-    if(r==="A"){ add(1,"+1"); add(11,"+11"); }
-    else if(["2","3","5","6","7","8"].indexOf(r)>=0){ add(+r,"+"+r); }
-    else if(r==="4"){ out.push({label:"방향 반대 (±0)",total:total,reverse:true,over:false}); }
-    else if(r==="9"){ out.push({label:"패스 (±0)",total:total,over:false}); }
-    else if(r==="10"){ add(10,"+10"); if(total>=10) out.push({label:"−10",total:total-10,over:false}); }
-    else if(r==="J"||r==="Q"){ add(10,"+10"); }
-    else if(r==="K"){ out.push({label:"합계를 99로",total:99,over:false}); }
-    return out;
-  }
-  function isRisky(card,total){ return options(card,total).every(function(o){ return o.over; }); }
-  function face(c){
-    var r=rank(c);
-    if(r==="A") return {top:"+1",bottom:"+11",drop:BLUE};
-    if(r==="4") return {top:"방향",bottom:"반대",drop:MINT};
-    if(r==="9") return {top:"패스",bottom:"",drop:MINT};
-    if(r==="10") return {top:"+10",bottom:"−10",drop:BLUE};
-    if(r==="J"||r==="Q") return {top:"+10",bottom:"",drop:BLUE};
-    if(r==="K") return {top:"=99",bottom:"",drop:ORANGE};
-    return {top:"+"+r,bottom:"",drop:BLUE};
-  }
-  function liquidColor(t){ if(t>=99) return "#ff5b3a"; if(t>=90) return "#ff7a3d"; if(t>=70) return "#f2b53a"; return "#2fc9a8"; }
-  function nextPlayer(g,from){ var n=g.order.length, i=g.order.indexOf(from); return g.order[(i+g.dir+n)%n]; }
-  function nickOf(g,id){ return (g.nicks&&g.nicks[id])||"?"; }
-  function pushLog(g,msg){ g.log.push(msg); if(g.log.length>8) g.log.shift(); }
-  function drawCard(g,id){
-    if(!g.deck.length && g.discard.length){ g.deck=shuffle(g.discard); g.discard=[]; }
-    if(g.deck.length) g.hands[id].push(g.deck.pop());
-  }
-
-  /* ---------- 방장: 게임 상태 ---------- */
-  function newLobby(code){
-    return {code:code,status:"lobby",hostUid:S.uid,round:0,rev:0,players:[],order:[],hands:{},deck:[],discard:[],
-      total:0,prevTotal:0,turn:null,dir:1,nicks:{},log:[],loser:null,lastCard:null};
-  }
-  function findP(uid){ for(var i=0;i<G.players.length;i++) if(G.players[i].uid===uid) return G.players[i]; return null; }
-  function isOnline(p){ return p.uid===G.hostUid || (now()-(p.lastSeen||0))<T.offline; }
-  function viewFor(uid){
-    var counts={}; G.order.forEach(function(id){ counts[id]=(G.hands[id]||[]).length; });
-    return {
-      code:G.code,status:G.status,hostUid:G.hostUid,round:G.round,rev:G.rev,
-      players:G.players.map(function(p){ return {uid:p.uid,nick:p.nick,online:isOnline(p)}; }),
-      order:G.order,nicks:G.nicks,counts:counts,myHand:(G.hands[uid]||[]),deckCount:G.deck.length,
-      total:G.total,prevTotal:G.prevTotal,turn:G.turn,dir:G.dir,log:G.log.slice(-4),loser:G.loser,lastCard:G.lastCard
-    };
-  }
-  function topic(code,kind,uid){ return "g99v1/"+code+"/"+kind+(uid?"/"+uid:""); }
-  function pub(t,obj,retain){
-    var c=S.net&&S.net.client; if(!c) return;
-    try{ c.publish(t,obj===null?"":JSON.stringify(obj),{qos:0,retain:!!retain}); }catch(e){}
-  }
-  function sendHost(obj){ if(S.net) pub(topic(S.net.code,"h"),obj); }
-  function toGuest(uid,obj){ if(S.net) pub(topic(S.net.code,"u",uid),obj); }
-  function saveHost(){ lsSet("g99_host_"+G.code,JSON.stringify({ts:now(),G:G})); }
-  function loadSaved(code){
-    var raw=lsGet("g99_host_"+code); if(!raw) return null;
-    try{
-      var o=JSON.parse(raw);
-      if(o&&o.G&&o.G.hostUid===S.uid&&(now()-o.ts)<12*3600*1000&&o.G.code===code) return o.G;
-    }catch(e){}
-    return null;
-  }
-  function commit(){
-    G.rev=(G.rev||0)+1;
-    saveHost();
-    S.view=viewFor(S.uid);
-    if(!(S.view.status==="playing"&&S.view.turn===S.uid)) S.pending=null;
-    G.players.forEach(function(p){ if(p.uid!==S.uid) toGuest(p.uid,{t:"view",v:viewFor(p.uid)}); });
-    render();
-  }
-  function pubHost(){ pub(topic(G.code,"host"),{uid:S.uid,t:now()},true); }
-
-  function startGame(){
-    if(!G||S.net.role!=="host") return;
-    var ps=G.players.slice(0,MAX_PLAYERS);
-    if(ps.length<2){ toast("2명 이상 모여야 시작할 수 있어요."); return; }
-    var deck=shuffle(makeDeck()), hands={}, nicks={};
-    ps.forEach(function(p){ hands[p.uid]=[]; nicks[p.uid]=p.nick; });
-    for(var i=0;i<3;i++) ps.forEach(function(p){ hands[p.uid].push(deck.pop()); });
-    var order=ps.map(function(p){ return p.uid; });
-    S.prevFill=0; S.prevColor="#2fc9a8";
-    G.status="playing"; G.round=(G.round||0)+1; G.order=order; G.hands=hands; G.deck=deck; G.discard=[];
-    G.total=0; G.prevTotal=0; G.turn=order[0]; G.dir=1; G.nicks=nicks; G.loser=null; G.lastCard=null;
-    G.log=["게임 시작! "+nicks[order[0]]+"님부터 시작해요."];
-    commit();
-  }
-  // 성공하면 null, 실패하면 이유(문자열)
-  function applyPlay(uid,card,i){
-    if(G.status!=="playing") return "지금은 낼 수 없어요.";
-    if(G.turn!==uid) return "내 차례가 아니에요.";
-    var hand=G.hands[uid]||[], idx=hand.indexOf(card);
-    if(idx<0) return "가지고 있지 않은 카드예요.";
-    var opt=options(card,G.total)[i];
-    if(!opt) return "잘못된 선택이에요.";
-    hand.splice(idx,1); G.discard.push(card);
-    G.prevTotal=G.total; G.total=opt.total; G.lastCard=card;
-    if(opt.reverse) G.dir=-G.dir;
-    pushLog(G,nickOf(G,uid)+" · "+rank(card)+" → "+opt.label);
-    drawCard(G,uid);
-    if(G.total>99){
-      G.status="ended"; G.loser=uid; G.turn=null;
-      pushLog(G,"💦 "+nickOf(G,uid)+" 님이 99를 넘겼어요!");
-    } else {
-      G.turn=nextPlayer(G,uid);
-    }
-    return null;
-  }
-  function skipTurn(){
-    if(!G||G.status!=="playing") return;
-    var who=G.turn;
-    pushLog(G,"⏭ "+nickOf(G,who)+" 님의 차례를 방장이 건너뛰었어요.");
-    G.turn=nextPlayer(G,who);
-    commit();
-  }
-
-  function hostOnMsg(m){
-    if(!G||!m||!m.uid) return;
-    var p=findP(m.uid);
-    if(m.t==="hello"){
-      if(!p){
-        if(G.status==="playing"){ toGuest(m.uid,{t:"reject",msg:"이미 게임이 진행 중인 방이에요."}); return; }
-        if(G.players.length>=MAX_PLAYERS){ toGuest(m.uid,{t:"reject",msg:"이 방은 가득 찼어요 (최대 "+MAX_PLAYERS+"명)."}); return; }
-        p={uid:m.uid,nick:cleanNick(m.nick),joinedAt:now(),lastSeen:now()};
-        G.players.push(p);
-      } else { p.lastSeen=now(); }
-      commit();
-    } else if(m.t==="hb"){
-      if(!p) return;
-      p.lastSeen=now();
-      if(m.rev!==G.rev) toGuest(m.uid,{t:"view",v:viewFor(m.uid)});
-    } else if(m.t==="play"){
-      if(!p) return;
-      p.lastSeen=now();
-      var err=applyPlay(m.uid,m.card,m.i);
-      if(err){ toGuest(m.uid,{t:"err",msg:err}); toGuest(m.uid,{t:"view",v:viewFor(m.uid)}); }
-      else commit();
-    } else if(m.t==="leave"){
-      if(p&&G.status!=="playing"){
-        G.players=G.players.filter(function(x){ return x.uid!==m.uid; });
-        commit();
-      }
-    }
-  }
-  function hostSweep(){
-    if(!G) return;
-    var changed=false, nowT=now();
-    if(G.status!=="playing"){
-      var keep=G.players.filter(function(p){ return p.uid===G.hostUid || (nowT-(p.lastSeen||0))<T.drop; });
-      if(keep.length!==G.players.length){ G.players=keep; changed=true; }
-    }
-    var sig=G.players.map(function(p){ return p.uid+(isOnline(p)?"1":"0"); }).join("|");
-    if(sig!==S.sig){ S.sig=sig; changed=true; }
-    if(changed) commit();
-  }
-
-  /* ---------- 연결 ---------- */
-  function baseOpts(withWill){
-    var o={clientId:"g99-"+rid(10),keepalive:20,reconnectPeriod:2500,connectTimeout:T.connect,clean:true};
-    if(withWill) o.will={topic:topic(S.net.code,"host"),payload:"",qos:0,retain:true};
-    return o;
-  }
-  function connectOnce(mqtt,url,opts){
-    return new Promise(function(res,rej){
-      var done=false, c, tm;
-      tm=setTimeout(function(){ if(done) return; done=true; try{c.end(true);}catch(e){} rej(new Error("timeout")); },T.connect+500);
-      try{ c=mqtt.connect(url,opts); }catch(e){ clearTimeout(tm); return rej(e); }
-      c.once("connect",function(){ if(done) return; done=true; clearTimeout(tm); res(c); });
-      c.on("error",function(){ if(done) return; done=true; clearTimeout(tm); try{c.end(true);}catch(e){} rej(new Error("error")); });
-    });
-  }
-  async function connectAny(withWill){
-    var pref=S.net.url, urls=pref?[pref].concat(BROKERS.filter(function(u){return u!==pref;})):BROKERS.slice();
-    for(var i=0;i<urls.length;i++){
-      try{ var c=await connectOnce(S.net.mqtt,urls[i],baseOpts(withWill)); S.net.url=urls[i]; return c; }
-      catch(e){}
-    }
-    throw new Error("no broker");
-  }
-  function subP(c,topics){
-    return new Promise(function(res,rej){ c.subscribe(topics,{qos:0},function(err){ if(err) rej(err); else res(); }); });
-  }
-  function attach(c){
-    c.on("message",function(t,buf){ onMessage(t,String(buf)); });
-    c.on("close",function(){ if(S.net&&S.net.client===c){ S.conn="retry"; render(); } });
-    c.on("connect",function(){
-      if(!(S.net&&S.net.client===c)) return;
-      S.conn="ok";
-      if(S.net.role==="host"&&G){ pubHost(); commit(); }
-      else if(S.net.role==="guest"){ sendHost({t:"hello",uid:S.uid,nick:S.nick}); }
-      render();
-    });
-  }
-  function onMessage(t,s){
-    var m=null; if(s){ try{ m=JSON.parse(s); }catch(e){ return; } }
-    var parts=t.split("/"), kind=parts[2];
-    if(!S.net) return;
-    if(kind==="host"){
-      S.net.hostSeen=true; S.net.hostMsg=m;
-      if(S.net.role==="guest"){ S.hostGone=!m; render(); }
-    } else if(kind==="u"&&parts[3]===S.uid){
-      guestOnMsg(m);
-    } else if(kind==="h"&&S.net.role==="host"){
-      hostOnMsg(m);
-    }
-  }
-  function guestOnMsg(m){
-    if(!m) return;
-    if(m.t==="view"){
-      S.view=m.v; S.busy=false; S.hostGone=false;
-      if(!(S.view.status==="playing"&&S.view.turn===S.uid)) S.pending=null;
-      render();
-    } else if(m.t==="reject"){ S.rejected=m.msg||"입장할 수 없어요."; }
-    else if(m.t==="err"){ S.busy=false; toast(m.msg||"낼 수 없어요."); render(); }
-    else if(m.t==="closed"){ teardown(); toast("방장이 방을 닫았어요."); }
-  }
-  function clearTimers(){ S.timers.forEach(function(id){ clearInterval(id); }); S.timers=[]; }
-  function teardown(){
-    clearTimers();
-    var c=S.net&&S.net.client; if(c){ try{ c.removeAllListeners("message"); c.end(false); }catch(e){} }
-    S.net=null; S.code=null; S.view=null; S.pending=null; S.rulesOpen=false; S.hostGone=false; S.conn="ok";
-    S.rejected=null; S.sig=null; G=null; S.busy=false;
-    render();
-  }
-  async function becomeGuest(){
-    S.net.role="guest"; S.code=S.net.code; S.view=null; S.hostGone=false; S.rejected=null;
-    var t0=now(), lastHello=0;
-    while(now()-t0<T.hello && !S.view && !S.rejected){
-      if(now()-lastHello>1500){ sendHost({t:"hello",uid:S.uid,nick:S.nick}); lastHello=now(); }
-      await sleep(60);
-    }
-    if(S.rejected){ var msg=S.rejected; teardown(); toast(msg); return; }
-    if(!S.view){
-      // 오래된 방장 표시가 남아 있었던 경우: 내가 새 방장이 됨
-      pub(topic(S.net.code,"host"),null,true);
-      await becomeHost(false); return;
-    }
-    S.timers.push(setInterval(function(){ sendHost({t:"hb",uid:S.uid,rev:S.view?S.view.rev:-1}); },T.hb));
-    render();
-  }
-  async function becomeHost(allowRestore){
-    var net=S.net, code=net.code;
-    try{ net.client.removeAllListeners("message"); net.client.end(true); }catch(e){}
-    var client=await connectAny(true);
-    net.client=client; attach(client);
-    await subP(client,[topic(code,"h")]);
-    net.role="host"; S.code=code; S.hostGone=false; S.view=null;
-    var saved=allowRestore?loadSaved(code):null;
-    G=saved||newLobby(code);
-    G.hostUid=S.uid;
-    var nowT=now(), me=findP(S.uid);
-    if(!me){ G.players.unshift({uid:S.uid,nick:S.nick,joinedAt:nowT,lastSeen:nowT}); }
-    else { me.nick=S.nick; me.lastSeen=nowT; }
-    G.players.forEach(function(p){ if(p.uid!==S.uid) p.lastSeen=nowT; }); // 복원 직후 잠깐 유예
-    pubHost();
-    S.sig=null;
-    S.timers.push(setInterval(function(){ if(G){ findP(S.uid).lastSeen=now(); pubHost(); } },T.hostRefresh));
-    S.timers.push(setInterval(hostSweep,T.sweep));
-    commit();
-  }
-  async function enterRoom(nick,code){
-    if(S.joining) return;
-    nick=cleanNick(nick); code=sanitize(code);
-    if(!nick||!String(nick).trim()){ toast("닉네임을 입력해 주세요."); return; }
-    if(code.length<3){ toast("방 번호는 영문/숫자 3자 이상으로 정해 주세요."); return; }
-    S.nick=nick; S.codeInput=code; lsSet("g99_nick",nick);
-    S.joining=true; render();
-    try{
-      var mqtt=await env.getMqtt();
-      S.net={code:code,role:null,client:null,url:null,mqtt:mqtt,hostSeen:false,hostMsg:null};
-      var client=await connectAny(false);
-      S.net.client=client; attach(client);
-      await subP(client,[topic(code,"host"),topic(code,"u",S.uid)]);
-      await waitUntil(function(){ return S.net.hostSeen; },T.probe);
-      var hm=S.net.hostMsg;
-      if(hm&&hm.uid&&hm.uid!==S.uid) await becomeGuest();
-      else await becomeHost(true);
-    }catch(e){
-      toast("연결에 실패했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.");
-      teardown();
-    } finally { S.joining=false; render(); }
-  }
-  function leaveRoom(){
-    var net=S.net; if(!net||!net.client){ teardown(); return; }
-    if(net.role==="guest"){ sendHost({t:"leave",uid:S.uid}); }
-    else if(net.role==="host"&&G){
-      G.players.forEach(function(p){ if(p.uid!==S.uid) toGuest(p.uid,{t:"closed"}); });
-      pub(topic(G.code,"host"),null,true);
-      lsDel("g99_host_"+G.code);
-    }
-    teardown();
-  }
-  function playCard(card,i){
-    var V=S.view; if(!V||V.status!=="playing"||V.turn!==S.uid||S.busy) return;
-    S.pending=null;
-    if(S.net.role==="host"){
-      var err=applyPlay(S.uid,card,i);
-      if(err){ toast(err); render(); } else commit();
-    } else {
-      S.busy=true; render();
-      sendHost({t:"play",uid:S.uid,card:card,i:i});
-      setTimeout(function(){ if(S.busy){ S.busy=false; render(); } },T.busy);
-    }
-  }
-
-  /* ---------- 화면 조각 ---------- */
-  function dropSVG(color,w,h){
-    return '<svg aria-hidden="true" viewBox="0 0 60 76" style="width:'+w+'px;height:'+h+'px;display:block;flex:none">'+
-      '<path d="M30 4 C30 4 6 34 6 50 A24 24 0 0 0 54 50 C54 34 30 4 30 4 Z" fill="'+color+'"></path>'+
-      '<ellipse cx="20" cy="46" rx="4" ry="8" transform="rotate(20 20 46)" fill="#ffffff" opacity="0.55"></ellipse>'+
-      '<circle cx="24" cy="54" r="3" fill="#14202a"></circle><circle cx="38" cy="54" r="3" fill="#14202a"></circle>'+
-      '<ellipse cx="31" cy="61" rx="4" ry="2.5" fill="#14202a"></ellipse></svg>';
-  }
-  function bareDrop(color,w,h){
-    return '<svg aria-hidden="true" viewBox="0 0 60 76" style="width:'+w+'px;height:'+h+'px;display:block;flex:none"><path d="M30 4 C30 4 6 34 6 50 A24 24 0 0 0 54 50 C54 34 30 4 30 4 Z" fill="'+color+'"></path></svg>';
-  }
-  var WAVE=(function(){
-    var d="M0 8", i;
-    for(i=0;i<16;i++){ d+=" Q "+(i*50+12.5)+" "+(i%2===0?0:16)+" "+(i*50+25)+" 8 T "+(i*50+50)+" 8"; }
-    return d+" V16 H0 Z";
-  })();
-  function rulesListHTML(){
-    var data=[["A","+1 또는 +11"],["2·3·5·6·7·8","숫자만큼 더하기"],["4","방향 반대 (±0)"],["9","패스 (±0)"],["10","+10 또는 −10"],["J·Q","+10"],["K","합계를 99로"]];
-    return '<ul class="rlist">'+data.map(function(r){
-      return '<li>'+bareDrop(BLUE,14,18)+'<span><b>'+esc(r[0])+'</b> · '+esc(r[1])+'</span></li>';
-    }).join("")+'</ul>';
-  }
-  function rulesDetailsHTML(){
-    return '<details style="margin-top:12px"><summary>게임 룰 보기</summary>'+
-      '<p class="sub" style="margin-top:8px"><b style="color:var(--vermil)">합계가 99를 넘기면 그 사람이 지고 게임이 끝나요!</b><br>카드를 한 장 내고 한 장 뽑아 항상 3장을 유지해요.</p>'+
-      rulesListHTML()+'</details>';
-  }
-  function bannersHTML(){
-    var h="";
-    if(S.conn!=="ok") h+='<div class="notice">연결이 불안정해요. 다시 연결하는 중…</div>';
-    if(S.hostGone) h+='<div class="notice">방장의 연결이 끊겼어요. 방장이 같은 방 번호로 다시 들어오면 이어서 할 수 있어요.</div>';
-    return h;
-  }
-
-  function homeHTML(){
-    var h='<div class="top"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1></div>'+
-      '<p class="sub">방 번호를 정하고 친구에게 알려주면 같이 할 수 있어요. 가입은 필요 없어요.</p>';
-    h+='<div class="panel">'+
-      '<label for="nick" style="margin-top:0">닉네임</label>'+
-      '<input type="text" id="nick" maxlength="10" placeholder="예: 민수" autocomplete="off" value="'+esc(S.nick)+'">'+
-      '<label for="code">방 번호 (영문/숫자 3~12자)</label>'+
-      '<div class="row"><input type="text" id="code" class="grow" maxlength="12" placeholder="예: 1234" autocomplete="off" value="'+esc(S.codeInput)+'">'+
-      '<button class="btn ghost" data-act="rand">랜덤</button></div>'+
-      '<p class="sub" style="margin-top:8px">없는 번호면 새 방이 만들어지고(내가 방장), 있는 번호면 그 방에 들어가요.</p>'+
-      '<button class="btn full" style="margin-top:12px" data-act="join"'+(S.joining?' disabled':'')+'>'+(S.joining?'연결 중…':'입장하기')+'</button>'+
-      rulesDetailsHTML()+'</div>';
-    return h;
-  }
-  function connectingHTML(){
-    return '<div class="top"><h1 class="disp">99 카드게임</h1></div><div class="panel sub">방에 연결하는 중…</div>';
-  }
-  function lobbyHTML(){
-    var V=S.view, isHost=V.hostUid===S.uid;
-    var h=bannersHTML()+'<div class="top"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1></div>'+
-      '<div class="panel" style="text-align:center"><div class="sub">방 번호</div>'+
-      '<div class="roomcode">'+esc(S.code)+'</div>'+
-      '<div class="row" style="justify-content:center;margin-top:8px"><button class="btn ghost sm" data-act="copy">초대 링크 복사</button></div>'+
-      '<p class="sub" style="margin-top:10px">친구가 이 링크를 열면 방 번호가 자동으로 채워져요.</p></div>'+
-      '<div class="panel"><h2>참가자 ('+V.players.length+'/'+MAX_PLAYERS+')</h2><ul class="plist">';
-    V.players.forEach(function(p){
-      h+='<li><span class="grow">'+esc(p.nick)+(p.uid===S.uid?' (나)':'')+'</span>'+
-        (p.online?'':'<span class="tag off">연결 끊김</span>')+(p.uid===V.hostUid?'<span class="tag">방장</span>':'')+'</li>';
-    });
-    h+='</ul>';
-    if(isHost){
-      h+='<button class="btn full" style="margin-top:12px" data-act="start"'+(V.players.length<2?' disabled':'')+'>'+(V.players.length<2?'2명 이상 모이면 시작할 수 있어요':'게임 시작')+'</button>';
-    } else {
-      h+='<p class="sub" style="margin-top:12px;text-align:center">방장이 시작하길 기다리는 중…</p>';
-    }
-    h+='<div style="margin-top:12px"><button class="btn danger sm" data-act="leave">'+(isHost?'방 닫고 나가기':'나가기')+'</button></div>'+rulesDetailsHTML()+'</div>';
-    return h;
-  }
-  function tankHTML(total){
-    var left=Math.max(0,99-total), fill=Math.min(100,total/99*100), color=liquidColor(total);
-    var h='<div class="tank"><div class="liquid" id="liquid" data-fill="'+fill+'" data-color="'+color+'" style="height:'+S.prevFill+'%;background:'+S.prevColor+';color:'+S.prevColor+'">'+
-      '<div class="wavebox"><svg class="wave" aria-hidden="true" viewBox="0 0 800 16" preserveAspectRatio="none"><path d="'+WAVE+'" fill="currentColor"></path></svg></div>'+
-      '<span class="bub" style="left:36px;bottom:18px;width:14px;height:14px"></span>'+
-      '<span class="bub" style="left:62px;bottom:44px;width:8px;height:8px"></span>'+
-      '<span class="bub" style="left:112px;bottom:12px;width:10px;height:10px"></span></div>';
-    [99,75,50,25].forEach(function(v){ h+='<div class="tick" style="bottom:'+(v/99*100)+'%">'+v+'</div>'; });
-    if(total<=99&&left<=10) h+='<div class="chip">99까지 '+left+'</div>';
-    h+='<div class="plate"><small>합계</small><span class="num">'+total+'</span><small>/ 99</small></div></div>';
-    return h;
-  }
-  function handHTML(V){
-    var myTurn=V.status==="playing"&&V.turn===S.uid;
-    var h='<div class="hand">';
-    V.myHand.forEach(function(c){
-      var f=face(c), risky=isRisky(c,V.total);
-      h+='<button class="card'+(risky?' risky':'')+(S.pending===c?' sel':'')+(myTurn?'':' off')+'" data-act="pick" data-card="'+esc(c)+'"'+((myTurn&&!S.busy)?'':' disabled')+'>'+
-        '<span class="rk">'+esc(rank(c))+'</span>'+dropSVG(f.drop,52,66)+
-        '<span class="hint"><span>'+esc(f.top)+'</span><span>'+esc(f.bottom)+'</span></span>'+
-        (risky?'<span class="warn">초과!</span>':'')+'</button>';
-    });
-    h+='</div>';
-    if(myTurn&&S.pending){
-      var opts=options(S.pending,V.total), anyOver=opts.some(function(o){return o.over;});
-      h+='<div class="choice">'+(anyOver?'<div class="msg">99를 넘기면 내가 지고 게임이 끝나요!</div>':'');
-      opts.forEach(function(o,i){
-        h+='<button class="btn'+(o.over?' over':'')+'" data-act="choose" data-i="'+i+'"'+(S.busy?' disabled':'')+'>'+esc(o.label)+(o.over?' (99 초과!)':'')+'</button>';
-      });
-      h+='<button class="btn ghost" data-act="cancel">취소</button></div>';
-    }
-    return h;
-  }
-  function sheetHTML(){
-    return '<button class="scrim" aria-label="룰 닫기" data-act="rules"></button>'+
-      '<div class="sheet" role="dialog" aria-label="게임 룰"><div class="row" style="justify-content:space-between"><h3>게임 룰</h3>'+
-      '<button class="btn ghost sm" data-act="rules">닫기</button></div>'+
-      '<div class="rule99">합계가 99를 넘기면 그 사람이 지고, 게임이 끝나요!</div>'+
-      rulesListHTML()+'<div class="foot">카드를 내면 덱에서 한 장 뽑아 항상 3장을 유지해요.</div></div>';
-  }
-  function endHTML(V){
-    var me=S.uid, iLost=V.loser===me, total=V.total, over=Math.max(0,total-99);
-    var bigSize=total>=100?190:236, f=V.lastCard?face(V.lastCard):{top:"",drop:BLUE}, isHost=V.hostUid===me;
-    var bubbles=[[34,190,22],[318,150,14],[330,396,26],[22,470,12]].map(function(b){
-      return '<span class="bubble" aria-hidden="true" style="left:'+b[0]+'px;top:'+b[1]+'px;width:'+b[2]+'px;height:'+b[2]+'px"></span>';
-    }).join("");
-    var surf='<svg class="surface" aria-hidden="true" viewBox="0 0 390 28" preserveAspectRatio="none"><path d="M0 0 H390 V14 Q 366 28 342 14 T 294 14 T 246 14 T 198 14 T 150 14 T 102 14 T 54 14 T 6 14 Z" fill="#ff8a6e"></path></svg>';
-    return '<div class="end" role="dialog" aria-label="게임 종료"><div class="in">'+surf+bubbles+
-      '<div class="head"><span style="font-size:15px;font-weight:700;letter-spacing:.3em">게임 종료</span>'+
-      '<span class="big" style="font-size:'+bigSize+'px">'+total+'</span>'+
-      '<span class="pill">99 초과 +'+over+'</span>'+
-      '<span class="disp" style="font-size:46px;line-height:1.1;margin-top:4px">넘쳤어요!</span>'+
-      '<span style="font-size:16px;font-weight:500">'+(iLost?'내가':esc(nickOf(V,V.loser))+'님이')+' 합계를 99 넘게 만들었어요</span></div>'+
-      '<div style="display:flex;flex-direction:column;gap:14px">'+
-      (V.lastCard?'<div class="res"><div class="mini"><span class="disp" style="font-size:22px;line-height:1">'+esc(rank(V.lastCard))+'</span>'+bareDrop(f.drop,20,26)+'</div>'+
-        '<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;font-weight:700;color:#4a5a65">마지막으로 낸 카드'+(f.top?' · '+esc(f.top):'')+'</span>'+
-        '<span style="font-size:18px;font-weight:700;color:#14202a">합계 '+V.prevTotal+' → '+total+'</span></div></div>':'')+
-      (isHost?'<div class="btns"><button class="btn" data-act="start">한 판 더</button><button class="btn ghost" data-act="leave">방 닫고 나가기</button></div>'
-             :'<div class="wait">방장이 다시 시작하길 기다려요</div><div class="btns"><button class="btn ghost" data-act="leave">나가기</button></div>')+
-      '</div></div></div>';
-  }
-  function gameHTML(){
-    var V=S.view, me=S.uid, playing=V.status==="playing", myTurn=playing&&V.turn===me;
-    var inGame=V.order.indexOf(me)>=0, isHost=V.hostUid===me;
-    var online={}; V.players.forEach(function(p){ online[p.uid]=p.online; });
-    var h=bannersHTML()+'<div class="top"><div class="name disp">'+dropSVG(BLUE,22,28)+'99 카드게임<span class="tag" style="font-family:\'Noto Sans KR\',sans-serif">방 '+esc(S.code)+'</span></div>'+
-      '<span class="meta">덱 '+V.deckCount+'장 · '+(V.dir===1?'진행 방향 →':'← 방향 반대')+'</span></div>';
-    h+='<div class="players">';
-    V.order.forEach(function(id){
-      var isTurn=playing&&V.turn===id, n=V.counts[id]||0, b="";
-      for(var i=0;i<n;i++) b+='<span class="back"></span>';
-      h+='<div class="pl'+(isTurn?' turn':'')+(online[id]===false?' offline':'')+'"><div class="pn">'+esc(nickOf(V,id))+(id===me?' (나)':'')+'</div><div class="ps">'+b+'</div></div>';
-    });
-    h+='</div>';
-    if(myTurn) h+='<div class="banner me">내 차례예요! 카드를 한 장 내세요</div>';
-    else if(playing&&inGame) h+='<div class="banner">'+esc(nickOf(V,V.turn))+'님 차례예요…</div>';
-    else if(playing) h+='<div class="banner">관전 중</div>';
-    else h+='<div class="banner"></div>';
-    h+=tankHTML(V.total);
-    h+='<div class="log">';
-    V.log.slice(-2).reverse().forEach(function(l,i){ h+= i===0?'<b>'+esc(l)+'</b>':'<span>'+esc(l)+'</span>'; });
-    h+='</div>';
-    if(playing&&inGame) h+=handHTML(V);
-    if(isHost&&playing&&V.turn!==me){
-      h+='<div style="text-align:center"><button class="btn danger sm" data-act="skip">자리 비운 사람 차례 건너뛰기</button></div>';
-    }
-    h+='<button class="rulebar" data-act="rules">룰 보기 <svg aria-hidden="true" viewBox="0 0 16 16" style="width:14px;height:14px;display:block"><polygon points="3,11 8,5 13,11" fill="currentColor"></polygon></svg></button>';
-    if(playing) h+='<div style="text-align:center"><button class="btn danger sm" data-act="leave">'+(isHost?'방 닫고 나가기':'방에서 나가기')+'</button></div>';
-    if(S.rulesOpen) h+=sheetHTML();
-    if(V.status==="ended") h+=endHTML(V);
-    return h;
-  }
-
-  function render(){
-    var app=doc.getElementById("app"); if(!app) return;
-    var ae=doc.activeElement, focusId=ae&&ae.id, ss=null, se=null;
-    if(focusId&&ae.setSelectionRange){ try{ ss=ae.selectionStart; se=ae.selectionEnd; }catch(e){} }
-    var html;
-    if(!S.code||!S.view) html=S.joining?connectingHTML():(S.code?connectingHTML():homeHTML());
-    else if(S.view.status==="lobby") html=lobbyHTML();
-    else html=gameHTML();
-    app.innerHTML=html;
-    if(focusId){
-      var el=doc.getElementById(focusId);
-      if(el){ el.focus(); if(ss!==null){ try{ el.setSelectionRange(ss,se); }catch(e){} } }
-    }
-    var lq=doc.getElementById("liquid");
-    if(lq){
-      var f=lq.getAttribute("data-fill"), c=lq.getAttribute("data-color");
-      void lq.offsetWidth;
-      (env.raf||function(fn){ fn(); })(function(){ lq.style.height=f+"%"; lq.style.background=c; lq.style.color=c; });
-      S.prevFill=+f; S.prevColor=c;
-    }
-  }
-
-  /* ---------- 입력 처리 ---------- */
-  function onInput(id,value){ if(id==="nick") S.nick=value; if(id==="code") S.codeInput=value; }
-  function onKey(key,targetId){
-    if(key==="Enter"&&(targetId==="nick"||targetId==="code")) enterRoom(S.nick,S.codeInput);
-    if(key==="Escape"&&S.rulesOpen){ S.rulesOpen=false; render(); }
-  }
-  function onAction(a,el){
-    var V=S.view;
-    if(a==="join") enterRoom(S.nick,S.codeInput);
-    else if(a==="rand"){ S.codeInput=randCode(); render(); }
-    else if(a==="leave") leaveRoom();
-    else if(a==="start") startGame();
-    else if(a==="skip") skipTurn();
-    else if(a==="rules"){ S.rulesOpen=!S.rulesOpen; render(); }
-    else if(a==="copy"){
-      var base=""; try{ base=env.location.origin+env.location.pathname; }catch(e){}
-      var link=base?base+"?room="+S.code:S.code;
-      try{ env.copy(link).then(function(){ toast("초대 링크를 복사했어요."); },function(){ toast("방 번호: "+S.code); }); }
-      catch(err){ toast("방 번호: "+S.code); }
-    }
-    else if(a==="pick"){
-      if(!V||V.turn!==S.uid) return;
-      var card=el.getAttribute("data-card"), opts=options(card,V.total);
-      if(opts.length===1&&!opts[0].over) playCard(card,0);
-      else if(opts.length>=1){ S.pending=(S.pending===card)?null:card; render(); }
-    }
-    else if(a==="choose"){
-      if(!V||!S.pending) return;
-      playCard(S.pending,+el.getAttribute("data-i"));
-    }
-    else if(a==="cancel"){ S.pending=null; render(); }
-  }
-
-  return {S:S,render:render,onInput:onInput,onKey:onKey,onAction:onAction,
-    // 아래는 점검용
-    api:{enter:enterRoom,start:startGame,play:playCard,leave:leaveRoom,skip:skipTurn,options:options,
-      getG:function(){ return G; }}};
+var toastTimer=null;
+function toast(msg){
+  var t=document.getElementById("toast"); t.textContent=msg; t.className="show";
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.className=""; },3800);
+}
+/* ---------- 규칙 (99를 넘기면 그 사람이 지고 게임 종료) ---------- */
+function options(card,total){
+  var r=rank(card), out=[];
+  function add(n,label){ out.push({label:label,total:total+n,over:total+n>99}); }
+  if(r==="A"){ add(1,"+1"); add(11,"+11"); if(total>=1) out.push({label:"−1",total:total-1,over:false}); if(total>=11) out.push({label:"−11",total:total-11,over:false}); }
+  else if(["2","3","5","6","7","8"].indexOf(r)>=0){ add(+r,"+"+r); }
+  else if(r==="4"){ out.push({label:"방향 반대 (±0)",total:total,reverse:true,over:false}); }
+  else if(r==="9"){ out.push({label:"패스 (±0)",total:total,over:false}); }
+  else if(r==="10"){ add(10,"+10"); if(total>=10) out.push({label:"−10",total:total-10,over:false}); }
+  else if(r==="J"||r==="Q"){ add(10,"+10"); }
+  else if(r==="K"){ out.push({label:"합계를 99로",total:99,over:false}); }
+  return out;
+}
+function isRisky(card,total){ return options(card,total).every(function(o){ return o.over; }); }
+function face(c){
+  var r=rank(c);
+  if(r==="A") return {top:"±1",bottom:"±11",drop:BLUE};
+  if(r==="4") return {top:"방향",bottom:"반대",drop:MINT};
+  if(r==="9") return {top:"패스",bottom:"",drop:MINT};
+  if(r==="10") return {top:"+10",bottom:"−10",drop:BLUE};
+  if(r==="J"||r==="Q") return {top:"+10",bottom:"",drop:BLUE};
+  if(r==="K") return {top:"=99",bottom:"",drop:ORANGE};
+  return {top:"+"+r,bottom:"",drop:BLUE};
+}
+function liquidColor(t){
+  if(t>=99) return "#ff5b3a";
+  if(t>=90) return "#ff7a3d";
+  if(t>=70) return "#f2b53a";
+  return "#2fc9a8";
+}
+function nextPlayer(g,from){
+  var n=g.order.length, i=g.order.indexOf(from);
+  i=(i+g.dir+n)%n; return g.order[i];
+}
+function nickOf(g,id){ return (g.nicks&&g.nicks[id])||"?"; }
+function pushLog(g,msg){ g.log.push(msg); if(g.log.length>8) g.log.shift(); }
+function drawCard(g,id){
+  if(!g.deck.length && g.discard.length){ g.deck=shuffle(g.discard); g.discard=[]; }
+  if(g.deck.length) g.hands[id].push(g.deck.pop());
 }
 
-/* ---------- 브라우저 시작 ---------- */
-(function boot(){
-  if(typeof document==="undefined"||!document.getElementById("app")) return;
-  function loadMqtt(){
-    if(window.mqtt) return Promise.resolve(window.mqtt);
-    var urls=["https://cdn.jsdelivr.net/npm/mqtt@5.3.4/dist/mqtt.min.js","https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"];
-    return new Promise(function(resolve,reject){
-      var i=0;
-      (function next(){
-        if(i>=urls.length) return reject(new Error("mqtt load failed"));
-        var s=document.createElement("script"); s.src=urls[i++];
-        s.onload=function(){ if(window.mqtt) resolve(window.mqtt); else next(); };
-        s.onerror=next; document.head.appendChild(s);
-      })();
-    });
+/* ---------- 저장 ---------- */
+async function save(g){
+  if(S.solo){ S.game=g; render(); botTick(); return; }
+  if(S.isHostNet){ S.game=g; pushState(); }
+}
+
+/* ---------- 네트워크 (PeerJS · 방장 중심 P2P) ---------- */
+var NS="g997e28f9-";
+var PEER_OPTS={debug:1,config:{iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:global.stun.twilio.com:3478"}]}};
+function netId(code){ return NS+code.toLowerCase(); }
+function netErr(e){
+  var t=e&&e.type;
+  if(t==="peer-unavailable") return "방에 연결하지 못했어요. 방번호가 맞는지, 방장이 아직 있는지 확인해 주세요.";
+  if(t==="timeout") return "연결 시간이 초과됐어요. 잠시 후 다시 시도해 주세요. (회사/학교/일부 모바일망에서는 막힐 수 있어요)";
+  if(t==="network"||t==="server-error"||t==="socket-error"||t==="socket-closed") return "연결 서버에 닿지 못했어요. 인터넷 연결을 확인해 주세요.";
+  if(t==="invalid-id") return "방 번호는 영문/숫자로 정해 주세요.";
+  return "문제가 생겼어요. 잠시 후 다시 시도해 주세요.";
+}
+function openPeer(id){
+  return new Promise(function(res,rej){
+    var p=id?new Peer(id,PEER_OPTS):new Peer(PEER_OPTS), done=false;
+    function fail(e){ if(done) return; done=true; try{ p.destroy(); }catch(x){} rej(e); }
+    p.on("open",function(){ if(done) return; done=true; res(p); });
+    p.on("error",fail);
+    setTimeout(function(){ fail({type:"timeout"}); },12000);
+  });
+}
+function netCleanup(){
+  try{ if(S.hostConn){ var hc=S.hostConn; S.hostConn=null; hc.close(); } }catch(e){}
+  Object.keys(S.conns).forEach(function(k){ try{ S.conns[k].close(); }catch(e){} });
+  S.conns={};
+  try{ if(S.peer) S.peer.destroy(); }catch(e){}
+  S.peer=null; S.isHostNet=false; S.net=false;
+}
+function resetLocal(){
+  netCleanup();
+  S.code=null; S.game=null; S.players=[]; S.pending=null; S.rulesOpen=false; S.uid=null;
+}
+function pushState(){
+  if(!(S.game&&S.game.status==="playing"&&S.game.turn===S.uid)) S.pending=null;
+  var msg={type:"state",game:S.game,players:S.players};
+  Object.keys(S.conns).forEach(function(k){ try{ S.conns[k].send(msg); }catch(e){} });
+  render();
+}
+function rejectConn(conn,msg){
+  try{ conn.send({type:"reject",msg:msg}); setTimeout(function(){ try{ conn.close(); }catch(e){} },400); }catch(e){}
+}
+function rejoinTarget(g,nick){
+  for(var i=0;i<g.order.length;i++){
+    var id=g.order[i];
+    if(id!==S.uid && !S.conns[id] && nickOf(g,id)===nick) return id;
   }
-  var app=createApp({
-    document:document, localStorage:window.localStorage, location:window.location,
-    getMqtt:loadMqtt, raf:function(fn){ requestAnimationFrame(fn); },
-    copy:function(t){ return navigator.clipboard.writeText(t); }
+  return null;
+}
+function remapId(g,old,nw){
+  g.order=g.order.map(function(x){ return x===old?nw:x; });
+  g.hands[nw]=g.hands[old]; delete g.hands[old];
+  g.nicks[nw]=g.nicks[old]; delete g.nicks[old];
+  ["turn","lastBy","loser"].forEach(function(k){ if(g[k]===old) g[k]=nw; });
+}
+function hostDrop(id,conn){
+  if(!S.isHostNet||S.conns[id]!==conn) return;
+  delete S.conns[id];
+  if(S.game&&S.game.status!=="playing") S.players=S.players.filter(function(p){ return p.id!==id; });
+  pushState();
+}
+function hostHandle(conn,m){
+  if(!m||!S.isHostNet||!S.game) return;
+  var id=conn.peer, g=S.game;
+  if(m.type==="join"){
+    var nick=String(m.nick||"").trim().slice(0,10)||"손님";
+    var known=S.players.some(function(p){ return p.id===id; });
+    if(!known){
+      if(g.status==="playing"){
+        var old=rejoinTarget(g,nick);
+        if(!old){ rejectConn(conn,"이미 게임이 진행 중인 방이에요."); return; }
+        var g2=clone(g); remapId(g2,old,id); pushLog(g2,nick+" 님이 다시 들어왔어요.");
+        S.game=g2;
+        S.players=S.players.map(function(p){ return p.id===old?{id:id,nick:p.nick,joinedAt:p.joinedAt}:p; });
+      } else {
+        if(S.players.length>=MAX_PLAYERS){ rejectConn(conn,"이 방은 가득 찼어요 (최대 "+MAX_PLAYERS+"명)."); return; }
+        S.players.push({id:id,nick:nick,joinedAt:Date.now()});
+      }
+    }
+    S.conns[id]=conn;
+    pushState();
+  }
+  else if(m.type==="play"){
+    if(g.status!=="playing"||g.turn!==id) return;
+    var card=String(m.card), opt=options(card,g.total)[+m.i];
+    if(!opt) return;
+    var g3=clone(g);
+    if(!applyPlay(g3,id,card,opt)) return;
+    S.game=g3; pushState();
+  }
+  else if(m.type==="leave"){ hostDrop(id,conn); }
+}
+function guestHandle(m){
+  if(!m) return;
+  if(m.type==="state"){
+    S.game=m.game; S.players=m.players||[];
+    if(!(S.game&&S.game.status==="playing"&&S.game.turn===S.uid)) S.pending=null;
+    render();
+  } else if(m.type==="reject"){
+    toast(m.msg||"입장할 수 없어요."); resetLocal(); render();
+  }
+}
+function hostRoom(peer,code,nick){
+  S.peer=peer; S.net=true; S.isHostNet=true; S.uid=peer.id; S.conns={};
+  S.code=code; S.nick=nick; S.pending=null; S.rulesOpen=false; S.prevFill=0; S.prevColor="#2fc9a8";
+  S.players=[{id:S.uid,nick:nick,joinedAt:Date.now()}];
+  S.game={status:"lobby",hostId:S.uid,round:0,created:Date.now()};
+  peer.on("connection",function(conn){
+    conn.on("data",function(m){ hostHandle(conn,m); });
+    conn.on("close",function(){ hostDrop(conn.peer,conn); });
+    conn.on("error",function(){ hostDrop(conn.peer,conn); });
   });
-  document.addEventListener("input",function(e){ app.onInput(e.target.id,e.target.value); });
-  document.addEventListener("keydown",function(e){ app.onKey(e.key,e.target.id); });
-  document.addEventListener("click",function(e){
-    var t=e.target.closest("[data-act]"); if(!t||t.disabled) return;
-    app.onAction(t.getAttribute("data-act"),t);
+  peer.on("disconnected",function(){ try{ peer.reconnect(); }catch(e){} });
+  peer.on("error",function(e){ toast(netErr(e)); });
+}
+async function guestRoom(code,nick){
+  var peer=await openPeer(null);
+  var conn=peer.connect(netId(code),{reliable:true,serialization:"json"});
+  try{
+    await new Promise(function(res,rej){
+      var done=false;
+      function fail(e){ if(done) return; done=true; rej(e); }
+      conn.on("open",function(){ if(done) return; done=true; res(); });
+      peer.on("error",fail);
+      setTimeout(function(){ fail({type:"timeout"}); },12000);
+    });
+  }catch(e){ try{ peer.destroy(); }catch(x){} throw e; }
+  S.peer=peer; S.net=true; S.isHostNet=false; S.hostConn=conn; S.uid=peer.id; S.conns={};
+  S.code=code; S.nick=nick; S.game=null; S.players=[]; S.pending=null; S.rulesOpen=false; S.prevFill=0; S.prevColor="#2fc9a8";
+  conn.on("data",guestHandle);
+  conn.on("close",function(){ if(S.hostConn===conn){ toast("방장과 연결이 끊겼어요. 방이 닫혔을 수 있어요."); resetLocal(); render(); } });
+  peer.on("error",function(e){ toast(netErr(e)); });
+  peer.on("disconnected",function(){ try{ peer.reconnect(); }catch(e){} });
+  conn.send({type:"join",nick:nick});
+}
+async function joinRoom(){
+  if(S.joining||S.solo) return;
+  var nick=S.nick.trim().slice(0,10);
+  var code=sanitize(S.codeInput);
+  if(typeof Peer==="undefined"){ toast("연결 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요."); return; }
+  if(!nick){ toast("닉네임을 입력해 주세요."); return; }
+  if(code.length<3){ toast("방 번호는 영문/숫자 3자 이상으로 정해 주세요."); return; }
+  if(!/^[A-Z0-9]+([_-][A-Z0-9]+)*$/.test(code)){ toast("방 번호는 영문/숫자로 정해 주세요. (-, _ 는 중간에만 쓸 수 있어요)"); return; }
+  try{ localStorage.setItem("g99_nick",nick); }catch(e){}
+  S.joining=true; render();
+  try{
+    var peer=null;
+    try{ peer=await openPeer(netId(code)); }
+    catch(e){ if(!(e&&e.type==="unavailable-id")) throw e; }
+    if(peer) hostRoom(peer,code,nick);
+    else await guestRoom(code,nick);
+  }catch(e){ toast(netErr(e)); }
+  finally{ S.joining=false; render(); }
+}
+async function leaveRoom(){
+  if(S.solo){
+    clearTimeout(S.botTimer); S.botTimer=null; S.solo=false; S.uid=S.realUid; S.realUid=null;
+    S.code=null; S.game=null; S.players=[]; S.pending=null; S.rulesOpen=false; render(); return;
+  }
+  if(S.hostConn){ try{ S.hostConn.send({type:"leave"}); }catch(e){} }
+  resetLocal(); render();
+}
+
+/* ---------- 게임 진행 ---------- */
+async function startGame(){
+  var g0=S.game; if(!g0||S.busy) return;
+  var ps=S.players.slice(0,MAX_PLAYERS);
+  if(S.isHostNet){ ps=ps.filter(function(p){ return p.id===S.uid||S.conns[p.id]; }); S.players=ps.slice(); }
+  if(ps.length<2){ toast("2명 이상 모여야 시작할 수 있어요."); return; }
+  var deck=shuffle(makeDeck()), hands={}, nicks={};
+  ps.forEach(function(p){ hands[p.id]=[]; nicks[p.id]=p.nick; });
+  for(var i=0;i<3;i++) ps.forEach(function(p){ hands[p.id].push(deck.pop()); });
+  var order=ps.map(function(p){ return p.id; });
+  if(S.solo) order=shuffle(order);
+  S.prevFill=0; S.prevColor="#2fc9a8";
+  await save({
+    status:"playing", hostId:g0.hostId||S.uid, round:(g0.round||0)+1, created:g0.created||Date.now(),
+    order:order, hands:hands, deck:deck, discard:[], total:0, prevTotal:0, turn:order[0], dir:1,
+    nicks:nicks, log:["게임 시작! "+nicks[order[0]]+"님부터 시작해요."], loser:null, lastCard:null, lastLabel:null, lastBy:null
   });
-  app.render();
+}
+function applyPlay(g,who,card,opt){
+  var hand=g.hands[who], idx=hand.indexOf(card);
+  if(idx<0) return false;
+  hand.splice(idx,1); g.discard.push(card);
+  g.prevTotal=g.total; g.total=opt.total; g.lastCard=card; g.lastLabel=opt.label; g.lastBy=who;
+  if(opt.reverse) g.dir=-g.dir;
+  pushLog(g,nickOf(g,who)+" · "+rank(card)+" → "+opt.label);
+  drawCard(g,who);
+  if(g.total>99){
+    g.status="ended"; g.loser=who; g.turn=null;
+    pushLog(g,"💦 "+nickOf(g,who)+" 님이 99를 넘겼어요!");
+  } else {
+    g.turn=nextPlayer(g,who);
+  }
+  return true;
+}
+async function playCard(card,opt){
+  var g0=S.game;
+  if(!g0||g0.status!=="playing"||g0.turn!==S.uid||S.busy) return;
+  if(S.net&&!S.isHostNet){
+    var oi=options(card,g0.total).findIndex(function(o){ return o.label===opt.label; });
+    if(oi<0||!S.hostConn) return;
+    S.pending=null;
+    try{ S.hostConn.send({type:"play",card:card,i:oi}); }catch(e){ toast("연결이 불안정해요. 다시 시도해 주세요."); }
+    render(); return;
+  }
+  var g=clone(g0);
+  if(!applyPlay(g,S.uid,card,opt)) return;
+  S.pending=null;
+  await save(g);
+}
+/* ---------- 봇 (혼자 하기) ---------- */
+function botChoice(g,id){
+  var hand=g.hands[id]||[], cands=[];
+  hand.forEach(function(c){ options(c,g.total).forEach(function(o){ cands.push({card:c,opt:o}); }); });
+  if(!cands.length) return null;
+  var safe=cands.filter(function(x){ return !x.opt.over; });
+  if(!safe.length){ cands.sort(function(a,b){ return a.opt.total-b.opt.total; }); return cands[0]; }
+  var best=null, bs=-1e9;
+  safe.forEach(function(x){
+    var r=rank(x.card), sc=x.opt.total*0.5+Math.random()*20;
+    if(r==="K") sc+=g.total>=70?30:-60;
+    if(r==="4"||r==="9") sc+=g.total>=80?25:-5;
+    if(sc>bs){ bs=sc; best=x; }
+  });
+  return best;
+}
+function botTick(){
+  if(!S.solo||S.botTimer) return;
+  var g=S.game;
+  if(!g||g.status!=="playing"||g.turn===S.uid) return;
+  S.botTimer=setTimeout(function(){ S.botTimer=null; botPlay(); },1000+Math.random()*700);
+}
+function botPlay(){
+  if(!S.solo) return;
+  var g0=S.game;
+  if(!g0||g0.status!=="playing"||g0.turn===S.uid) return;
+  var g=clone(g0), id=g.turn, ch=botChoice(g,id);
+  if(!ch){ pushLog(g,nickOf(g,id)+" · 낼 카드가 없어 넘겼어요"); g.turn=nextPlayer(g,id); }
+  else applyPlay(g,id,ch.card,ch.opt);
+  save(g);
+}
+function startSolo(){
+  var nick=S.nick.trim().slice(0,10)||"나";
+  var n=Math.max(1,Math.min(3,S.botCount));
+  clearTimeout(S.botTimer); S.botTimer=null;
+  S.realUid=S.uid; S.uid="me"; S.solo=true; S.code="봇";
+  S.players=[{id:"me",nick:nick,joinedAt:0}];
+  for(var i=0;i<n;i++) S.players.push({id:"bot"+(i+1),nick:BOT_NAMES[i],joinedAt:i+1});
+  S.game={status:"lobby",hostId:"me",round:0,created:Date.now()};
+  S.pending=null; S.rulesOpen=false; S.busy=false;
+  startGame();
+}
+async function skipTurn(){
+  var g=clone(S.game);
+  if(g.status!=="playing"||S.busy) return;
+  var who=g.turn;
+  pushLog(g,"⏭ "+nickOf(g,who)+" 님의 차례를 방장이 건너뛰었어요.");
+  g.turn=nextPlayer(g,who);
+  await save(g);
+}
+/* ---------- 화면 조각 ---------- */
+function dropSVG(color,w,h){
+  return '<svg aria-hidden="true" viewBox="0 0 60 76" style="width:'+w+'px;height:'+h+'px;display:block;flex:none">'+
+    '<path d="M30 4 C30 4 6 34 6 50 A24 24 0 0 0 54 50 C54 34 30 4 30 4 Z" fill="'+color+'"></path>'+
+    '<ellipse cx="20" cy="46" rx="4" ry="8" transform="rotate(20 20 46)" fill="#ffffff" opacity="0.55"></ellipse>'+
+    '<circle cx="24" cy="54" r="3" fill="#14202a"></circle><circle cx="38" cy="54" r="3" fill="#14202a"></circle>'+
+    '<ellipse cx="31" cy="61" rx="4" ry="2.5" fill="#14202a"></ellipse></svg>';
+}
+function bareDrop(color,w,h){
+  return '<svg aria-hidden="true" viewBox="0 0 60 76" style="width:'+w+'px;height:'+h+'px;display:block;flex:none"><path d="M30 4 C30 4 6 34 6 50 A24 24 0 0 0 54 50 C54 34 30 4 30 4 Z" fill="'+color+'"></path></svg>';
+}
+function wavePath(){
+  var d="M0 8", i;
+  for(i=0;i<16;i++){ d+=" Q "+(i*50+12.5)+" "+(i%2===0?0:16)+" "+(i*50+25)+" 8 T "+(i*50+50)+" 8"; }
+  return d+" V16 H0 Z";
+}
+var WAVE=wavePath();
+function rulesData(){
+  return [
+    ["A","+1·+11·−1·−11 중 선택 (−는 합계가 모자라면 불가)"],["2·3·5·6·7·8","숫자만큼 더하기"],["4","방향 반대 (±0)"],
+    ["9","패스 (±0)"],["10","+10 또는 −10"],["J·Q","+10"],["K","합계를 99로"]
+  ];
+}
+function rulesListHTML(){
+  return '<ul class="rlist">'+rulesData().map(function(r){
+    return '<li>'+bareDrop(BLUE,14,18)+'<span><b>'+esc(r[0])+'</b> · '+esc(r[1])+'</span></li>';
+  }).join("")+'</ul>';
+}
+function rulesDetailsHTML(){
+  return '<details style="margin-top:12px"><summary>게임 룰 보기</summary>'+
+    '<p class="sub" style="margin-top:8px"><b style="color:var(--vermil)">합계가 99를 넘기면 그 사람이 지고 게임이 끝나요!</b><br>카드를 한 장 내고 한 장 뽑아 항상 3장을 유지해요.</p>'+
+    rulesListHTML()+'</details>';
+}
+
+/* ---------- 화면 ---------- */
+function homeHTML(){
+  var h='<div class="top"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1></div>'+
+    '<p class="sub">방 번호를 정하고, 친구에게 알려주면 같이 할 수 있어요.</p>';
+  if(!S.ready){ return h+'<div class="panel sub">연결 중…</div>'; }
+  h+='<div class="panel">'+
+    '<label for="nick" style="margin-top:0">닉네임</label>'+
+    '<input type="text" id="nick" maxlength="10" placeholder="예: 민수" autocomplete="off" value="'+esc(S.nick)+'">'+
+    '<label for="code">방 번호 (영문/숫자 3~12자)</label>'+
+    '<div class="row"><input type="text" id="code" class="grow" maxlength="12" placeholder="예: 1234" autocomplete="off" value="'+esc(S.codeInput)+'">'+
+    '<button class="btn ghost" data-act="rand">랜덤</button></div>'+
+    '<p class="sub" style="margin-top:8px">없는 번호면 새 방이 만들어지고, 있는 번호면 그 방에 들어가요.</p>'+
+    '<button class="btn full" style="margin-top:12px" data-act="join"'+(S.joining?' disabled':'')+'>'+(S.joining?'입장 중…':'입장하기')+'</button>'+
+    rulesDetailsHTML()+'</div>';
+  h+='<div class="panel"><h2>혼자 하기</h2><p class="sub">봇과 대결해요. 닉네임은 위 칸을 쓰고, 비워두면 "나"로 시작해요.</p>'+
+    '<div class="row" style="margin-top:10px"><span class="sub">봇 수</span>';
+  [1,2,3].forEach(function(n){
+    h+='<button class="btn sm'+(S.botCount===n?'':' ghost')+'" data-act="bots" data-n="'+n+'" aria-pressed="'+(S.botCount===n)+'">'+n+'명</button>';
+  });
+  h+='</div><button class="btn full" style="margin-top:12px" data-act="solo">봇과 시작</button></div>';
+  return h;
+}
+function lobbyHTML(){
+  var g=S.game, ids=S.players.map(function(p){return p.id;});
+  var hostId=g&&g.hostId, hostPresent=ids.indexOf(hostId)>=0, isHost=hostId===S.uid;
+  var h='<div class="top"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1></div>'+
+    '<div class="panel" style="text-align:center"><div class="sub">방 번호</div>'+
+    '<div class="roomcode">'+esc(S.code)+'</div>'+
+    '<div class="row" style="justify-content:center;margin-top:8px"><button class="btn ghost sm" data-act="copy">방 번호 복사</button></div>'+
+    '<p class="sub" style="margin-top:10px">친구가 같은 주소를 열고 이 번호로 입장하면 돼요. 방장이 나가면 방이 닫혀요.</p></div>'+
+    '<div class="panel"><h2>참가자 ('+S.players.length+'/'+MAX_PLAYERS+')</h2><ul class="plist">';
+  S.players.forEach(function(p){
+    h+='<li><span class="grow">'+esc(p.nick)+(p.id===S.uid?' (나)':'')+'</span>'+(p.id===hostId?'<span class="tag">방장</span>':'')+'</li>';
+  });
+  h+='</ul>';
+  if(isHost){
+    h+='<button class="btn full" style="margin-top:12px" data-act="start"'+((S.players.length<2||S.busy)?' disabled':'')+'>'+(S.players.length<2?'2명 이상 모이면 시작할 수 있어요':'게임 시작')+'</button>';
+  } else if(hostPresent){
+    h+='<p class="sub" style="margin-top:12px;text-align:center">방장이 시작하길 기다리는 중…</p>';
+  }
+  h+='<div style="margin-top:12px"><button class="btn danger sm" data-act="leave">나가기</button></div>'+rulesDetailsHTML()+'</div>';
+  return h;
+}
+function tankHTML(total){
+  var left=Math.max(0,99-total);
+  var fill=Math.min(100,total/99*100), color=liquidColor(total);
+  var h='<div class="tank"><div class="liquid" id="liquid" data-fill="'+fill+'" data-color="'+color+'" style="height:'+S.prevFill+'%;background:'+S.prevColor+';color:'+S.prevColor+'">'+
+    '<div class="wavebox"><svg class="wave" aria-hidden="true" viewBox="0 0 800 16" preserveAspectRatio="none"><path d="'+WAVE+'" fill="currentColor"></path></svg></div>'+
+    '<span class="bub" style="left:36px;bottom:18px;width:14px;height:14px"></span>'+
+    '<span class="bub" style="left:62px;bottom:44px;width:8px;height:8px"></span>'+
+    '<span class="bub" style="left:112px;bottom:12px;width:10px;height:10px"></span></div>';
+  [99,75,50,25].forEach(function(v){ h+='<div class="tick" style="bottom:'+(v/99*100)+'%">'+v+'</div>'; });
+  if(total<=99 && left<=10) h+='<div class="chip">99까지 '+left+'</div>';
+  h+='<div class="plate"><small>합계</small><span class="num">'+total+'</span><small>/ 99</small></div></div>';
+  return h;
+}
+function handHTML(g){
+  var me=S.uid, myTurn=g.status==="playing"&&g.turn===me;
+  var h='<div class="hand">';
+  (g.hands[me]||[]).forEach(function(c){
+    var f=face(c), risky=isRisky(c,g.total);
+    h+='<button class="card'+(risky?' risky':'')+(S.pending===c?' sel':'')+(myTurn?'':' off')+'" data-act="pick" data-card="'+esc(c)+'"'+((myTurn&&!S.busy)?'':' disabled')+'>'+
+      '<span class="rk">'+esc(rank(c))+'</span>'+dropSVG(f.drop,52,66)+
+      '<span class="hint"><span>'+esc(f.top)+'</span><span>'+esc(f.bottom)+'</span></span>'+
+      (risky?'<span class="warn">초과!</span>':'')+'</button>';
+  });
+  h+='</div>';
+  if(myTurn&&S.pending){
+    var opts=options(S.pending,g.total), anyOver=opts.some(function(o){return o.over;});
+    h+='<div class="choice">'+(anyOver?'<div class="msg">99를 넘기면 내가 지고 게임이 끝나요!</div>':'');
+    opts.forEach(function(o,i){
+      h+='<button class="btn'+(o.over?' over':'')+'" data-act="choose" data-i="'+i+'"'+(S.busy?' disabled':'')+'>'+esc(o.label)+(o.over?' (99 초과!)':'')+'</button>';
+    });
+    h+='<button class="btn ghost" data-act="cancel">취소</button></div>';
+  }
+  return h;
+}
+function sheetHTML(){
+  return '<button class="scrim" aria-label="룰 닫기" data-act="rules"></button>'+
+    '<div class="sheet" role="dialog" aria-label="게임 룰"><div class="row" style="justify-content:space-between"><h3>게임 룰</h3>'+
+    '<button class="btn ghost sm" data-act="rules">닫기</button></div>'+
+    '<div class="rule99">합계가 99를 넘기면 그 사람이 지고, 게임이 끝나요!</div>'+
+    rulesListHTML()+'<div class="foot">카드를 내면 덱에서 한 장 뽑아 항상 3장을 유지해요.</div></div>';
+}
+function endHTML(g){
+  var me=S.uid, loser=g.loser, iLost=loser===me, total=g.total, over=Math.max(0,total-99);
+  var bigSize=total>=100?190:236;
+  var f=g.lastCard?face(g.lastCard):{top:"",drop:BLUE};
+  var isHost=g.hostId===me;
+  var bubbles=[[34,190,22],[318,150,14],[330,396,26],[22,470,12]].map(function(b){
+    return '<span class="bubble" aria-hidden="true" style="left:'+b[0]+'px;top:'+b[1]+'px;width:'+b[2]+'px;height:'+b[2]+'px"></span>';
+  }).join("");
+  var surf='<svg class="surface" aria-hidden="true" viewBox="0 0 390 28" preserveAspectRatio="none"><path d="M0 0 H390 V14 Q 366 28 342 14 T 294 14 T 246 14 T 198 14 T 150 14 T 102 14 T 54 14 T 6 14 Z" fill="#ff8a6e"></path></svg>';
+  return '<div class="end" role="dialog" aria-label="게임 종료"><div class="in">'+surf+bubbles+
+    '<div class="head"><span style="font-size:15px;font-weight:700;letter-spacing:.3em">게임 종료</span>'+
+    '<span class="big" style="font-size:'+bigSize+'px">'+total+'</span>'+
+    '<span class="pill">99 초과 +'+over+'</span>'+
+    '<span class="disp" style="font-size:46px;line-height:1.1;margin-top:4px">넘쳤어요!</span>'+
+    '<span style="font-size:16px;font-weight:500">'+(iLost?'내가':esc(nickOf(g,loser))+'님이')+' 합계를 99 넘게 만들었어요</span></div>'+
+    '<div style="display:flex;flex-direction:column;gap:14px">'+
+    (g.lastCard?'<div class="res"><div class="mini"><span class="disp" style="font-size:22px;line-height:1">'+esc(rank(g.lastCard))+'</span>'+bareDrop(f.drop,20,26)+'</div>'+
+      '<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;font-weight:700;color:#4a5a65">마지막으로 낸 카드'+((g.lastLabel||f.top)?' · '+esc(g.lastLabel||f.top):'')+'</span>'+
+      '<span style="font-size:18px;font-weight:700;color:#14202a">합계 '+g.prevTotal+' → '+total+'</span></div></div>':'')+
+    (isHost?'<div class="btns"><button class="btn" data-act="start"'+(S.busy?' disabled':'')+'>한 판 더</button><button class="btn ghost" data-act="leave">나가기</button></div>'
+           :'<div class="wait">방장이 다시 시작하길 기다려요</div><div class="btns"><button class="btn ghost" data-act="leave">나가기</button></div>')+
+    '</div></div></div>';
+}
+function gameHTML(){
+  var g=S.game, me=S.uid;
+  var playing=g.status==="playing", myTurn=playing&&g.turn===me;
+  var inGame=g.order.indexOf(me)>=0;
+  var isHost=g.hostId===me;
+  var h='<div class="top"><div class="name disp">'+dropSVG(BLUE,22,28)+'99 카드게임<span class="tag" style="font-family:\'Noto Sans KR\',sans-serif">'+(S.solo?'봇 대전':'방 '+esc(S.code))+'</span></div>'+
+    '<span class="meta">덱 '+g.deck.length+'장 · '+(g.dir===1?'진행 방향 →':'← 방향 반대')+'</span></div>';
+  h+='<div class="players">';
+  g.order.forEach(function(id){
+    var isTurn=playing&&g.turn===id, n=(g.hands[id]||[]).length, b="";
+    for(var i=0;i<n;i++) b+='<span class="back"></span>';
+    h+='<div class="pl'+(isTurn?' turn':'')+'"><div class="pn">'+esc(nickOf(g,id))+(id===me?' (나)':'')+'</div><div class="ps">'+b+'</div></div>';
+  });
+  h+='</div>';
+  if(myTurn) h+='<div class="banner me">내 차례예요! 카드를 한 장 내세요</div>';
+  else if(playing&&inGame) h+='<div class="banner">'+esc(nickOf(g,g.turn))+'님 차례예요…</div>';
+  else if(playing) h+='<div class="banner">관전 중</div>';
+  else h+='<div class="banner"></div>';
+  h+=tankHTML(g.total);
+  h+='<div class="log">';
+  g.log.slice(-2).reverse().forEach(function(l,i){ h+= i===0?'<b>'+esc(l)+'</b>':'<span>'+esc(l)+'</span>'; });
+  h+='</div>';
+  if(playing&&g.lastCard){ var lf=face(g.lastCard);
+    h+='<div class="lastc"><div class="mc"><span>'+esc(rank(g.lastCard))+'</span>'+bareDrop(lf.drop,18,23)+'</div><div class="tx"><small>마지막으로 낸 카드'+(g.lastBy?' · '+esc(nickOf(g,g.lastBy)):'')+'</small><b>'+esc(g.lastLabel||lf.top)+' · 합계 '+g.prevTotal+' → '+g.total+'</b></div></div>';
+  }
+  if(playing&&inGame) h+=handHTML(g);
+  if(isHost&&playing&&g.turn!==me&&!S.solo){
+    h+='<div style="text-align:center"><button class="btn danger sm" data-act="skip"'+(S.busy?' disabled':'')+'>자리 비운 사람 차례 건너뛰기</button></div>';
+  }
+  h+='<button class="rulebar" data-act="rules">룰 보기 <svg aria-hidden="true" viewBox="0 0 16 16" style="width:14px;height:14px;display:block"><polygon points="3,11 8,5 13,11" fill="currentColor"></polygon></svg></button>';
+  if(playing) h+='<div style="text-align:center"><button class="btn danger sm" data-act="leave">'+(S.solo?'그만하기':'방에서 나가기')+'</button></div>';
+  if(S.rulesOpen) h+=sheetHTML();
+  if(g.status==="ended") h+=endHTML(g);
+  return h;
+}
+
+function render(){
+  var app=document.getElementById("app");
+  var ae=document.activeElement, focusId=ae&&ae.id, ss=null, se=null;
+  if(focusId&&ae.setSelectionRange){ try{ ss=ae.selectionStart; se=ae.selectionEnd; }catch(e){} }
+  var html;
+  if(!S.code) html=homeHTML();
+  else if(!S.game||S.game.status==="lobby") html=lobbyHTML();
+  else html=gameHTML();
+  app.innerHTML=html;
+  if(focusId){
+    var el=document.getElementById(focusId);
+    if(el){ el.focus(); if(ss!==null){ try{ el.setSelectionRange(ss,se); }catch(e){} } }
+  }
+  var lq=document.getElementById("liquid");
+  if(lq){
+    var f=lq.getAttribute("data-fill"), c=lq.getAttribute("data-color");
+    void lq.offsetWidth;
+    requestAnimationFrame(function(){ lq.style.height=f+"%"; lq.style.background=c; lq.style.color=c; });
+    S.prevFill=+f; S.prevColor=c;
+  }
+}
+
+/* ---------- 이벤트 ---------- */
+document.addEventListener("input",function(e){
+  if(e.target.id==="nick") S.nick=e.target.value;
+  if(e.target.id==="code") S.codeInput=e.target.value;
+});
+document.addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&(e.target.id==="nick"||e.target.id==="code")){ e.preventDefault(); joinRoom(); }
+  if(e.key==="Escape"&&S.rulesOpen){ S.rulesOpen=false; render(); }
+});
+document.addEventListener("click",function(e){
+  var t=e.target.closest("[data-act]"); if(!t||t.disabled) return;
+  var a=t.getAttribute("data-act");
+  if(a==="join") joinRoom();
+  else if(a==="solo") startSolo();
+  else if(a==="bots"){ S.botCount=+t.getAttribute("data-n"); render(); }
+  else if(a==="rand"){ S.codeInput=randCode(); render(); }
+  else if(a==="leave") leaveRoom();
+  else if(a==="start") startGame();
+  else if(a==="skip") skipTurn();
+  else if(a==="rules"){ S.rulesOpen=!S.rulesOpen; render(); }
+  else if(a==="copy"){
+    var done=function(){ toast("방 번호를 복사했어요: "+S.code); };
+    try{ navigator.clipboard.writeText(S.code).then(done,function(){ toast("방 번호: "+S.code); }); }
+    catch(err){ toast("방 번호: "+S.code); }
+  }
+  else if(a==="pick"){
+    var g=S.game; if(!g||g.turn!==S.uid) return;
+    var card=t.getAttribute("data-card"), opts=options(card,g.total);
+    if(opts.length===1&&!opts[0].over) playCard(card,opts[0]);
+    else if(opts.length>=1){ S.pending=(S.pending===card)?null:card; render(); }
+  }
+  else if(a==="choose"){
+    var g2=S.game; if(!g2||!S.pending) return;
+    var o=options(S.pending,g2.total)[+t.getAttribute("data-i")];
+    if(o) playCard(S.pending,o);
+  }
+  else if(a==="cancel"){ S.pending=null; render(); }
+});
+
+/* ---------- 시작 ---------- */
+S.ready=true;
+render();
 })();
 </script>
 </body>
