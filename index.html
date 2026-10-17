@@ -153,13 +153,15 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;min-height:32px}
 <div class="wrap" id="app"></div>
 <div id="toast" role="status"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <script>
 (function(){
 "use strict";
 
 var S = {
-  uid:null, ready:false, peer:null, conns:{}, hostConn:null, isHostNet:false, net:false,
+  uid:null, ready:false, mqs:[], conns:{}, seen:{}, gone:{}, dedupe:{}, dq:[], seq:0, role:null, pri:null,
+  hostId:null, hostSeen:null, probeRes:null, lastHost:0, goneAt:0, hbT:null, swT:null, wdT:null, gbT:null,
+  isHostNet:false, net:false,
   nick:"", codeInput:"",
   code:null, game:null, players:[], unsubs:[],
   pending:null, busy:false, joining:false, rulesOpen:false,
@@ -235,51 +237,93 @@ async function save(g){
   if(S.isHostNet){ S.game=g; pushState(); }
 }
 
-/* ---------- 네트워크 (PeerJS · 방장 중심 P2P) ---------- */
-var NS="g997e28f9-";
-var PEER_OPTS={debug:1,config:{iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:global.stun.twilio.com:3478"}]}};
-function netId(code){ return NS+code.toLowerCase(); }
+/* ---------- 네트워크 (공개 MQTT 중계 서버 · 방장 중심) ---------- */
+var NS="g997e28f9";
+var BROKERS=["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mqtt","wss://test.mosquitto.org:8081"];
+var PROBE_MS=2600;
+function T(kind){ return "g99/"+NS+"/"+S.code.toLowerCase()+"/"+kind; }
+function newId(){ return "u"+Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3); }
 function netErr(e){
   var t=e&&e.type;
-  if(t==="peer-unavailable") return "방에 연결하지 못했어요. 방번호가 맞는지, 방장이 아직 있는지 확인해 주세요.";
-  if(t==="timeout") return "연결 시간이 초과됐어요. 잠시 후 다시 시도해 주세요. (회사/학교/일부 모바일망에서는 막힐 수 있어요)";
-  if(t==="network"||t==="server-error"||t==="socket-error"||t==="socket-closed") return "연결 서버에 닿지 못했어요. 인터넷 연결을 확인해 주세요.";
-  if(t==="invalid-id") return "방 번호는 영문/숫자로 정해 주세요.";
+  if(t==="network") return "연결 서버에 닿지 못했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.";
   return "문제가 생겼어요. 잠시 후 다시 시도해 주세요.";
 }
-function openPeer(id){
+function pub(kind,msg){
+  msg.mid=S.uid+"."+(++S.seq);
+  var str=JSON.stringify(msg);
+  S.mqs.forEach(function(c){ if(c.connected){ try{ c.publish(T(kind),str,{qos:0}); }catch(e){} } });
+}
+function subAll(topics){ S.mqs.forEach(function(c){ try{ c.subscribe(topics,{qos:0}); }catch(e){} }); }
+function openBus(uid){
   return new Promise(function(res,rej){
-    var p=id?new Peer(id,PEER_OPTS):new Peer(PEER_OPTS), done=false;
-    function fail(e){ if(done) return; done=true; try{ p.destroy(); }catch(x){} rej(e); }
-    p.on("open",function(){ if(done) return; done=true; res(p); });
-    p.on("error",fail);
-    setTimeout(function(){ fail({type:"timeout"}); },12000);
+    var settled=0, finished=false;
+    function finish(){
+      if(finished) return; finished=true;
+      if(S.mqs.length) res(); else rej({type:"network"});
+    }
+    function settle(){ settled++; if(settled>=BROKERS.length) finish(); }
+    BROKERS.forEach(function(url){
+      var c, done=false, to=null;
+      function fail(){ if(done) return; done=true; clearTimeout(to); try{ c.end(true); }catch(e){} settle(); }
+      try{
+        c=mqtt.connect(url,{clientId:"g99_"+uid,clean:true,keepalive:20,connectTimeout:6000,reconnectPeriod:0,
+          will:{topic:T("ev"),payload:JSON.stringify({t:"gone",from:uid}),qos:0,retain:false}});
+      }catch(e){ settle(); return; }
+      to=setTimeout(fail,7000);
+      c.on("error",fail);
+      c.on("close",fail);
+      c.on("message",onMsg);
+      c.on("connect",function(){
+        if(done) return; done=true; clearTimeout(to);
+        c.options.reconnectPeriod=2000;
+        try{ c.subscribe([T("dn"),T("ev")],{qos:0}); }catch(e){}
+        S.mqs.push(c);
+        if(S.mqs.length===1) setTimeout(finish,1500);
+        settle();
+      });
+    });
   });
 }
-function netCleanup(){
-  try{ if(S.hostConn){ var hc=S.hostConn; S.hostConn=null; hc.close(); } }catch(e){}
-  Object.keys(S.conns).forEach(function(k){ try{ S.conns[k].close(); }catch(e){} });
-  S.conns={};
-  try{ if(S.peer) S.peer.destroy(); }catch(e){}
-  S.peer=null; S.isHostNet=false; S.net=false;
+function onMsg(topic,payload){
+  var m; try{ m=JSON.parse(new TextDecoder().decode(payload)); }catch(e){ return; }
+  if(!m||typeof m!=="object") return;
+  if(m.mid){
+    if(S.dedupe[m.mid]) return;
+    S.dedupe[m.mid]=1; S.dq.push(m.mid);
+    if(S.dq.length>500) delete S.dedupe[S.dq.shift()];
+  }
+  if(m.from===S.uid) return;
+  var kind=topic.slice(topic.lastIndexOf("/")+1);
+  if(kind==="ev"){ if(m.t==="gone") onGone(m.from); return; }
+  if(S.role==="host") hostBus(kind,m);
+  else if(S.role==="guest") guestBus(kind,m);
+  else if(S.role==="probing") probeBus(kind,m);
+}
+function netClose(){
+  clearInterval(S.hbT); clearInterval(S.swT); clearInterval(S.wdT); clearInterval(S.gbT);
+  S.hbT=S.swT=S.wdT=S.gbT=null;
+  var list=S.mqs||[]; S.mqs=[];
+  setTimeout(function(){ list.forEach(function(c){ try{ c.end(true); }catch(e){} }); },300);
+  S.isHostNet=false; S.net=false; S.role=null; S.conns={}; S.seen={}; S.gone={}; S.hostId=null; S.goneAt=0; S.hostSeen=null; S.probeRes=null;
 }
 function resetLocal(){
-  netCleanup();
+  netClose();
   S.code=null; S.game=null; S.players=[]; S.pending=null; S.rulesOpen=false; S.uid=null;
 }
+function priLess(a,b){ return a.n<b.n || (a.n===b.n && a.id<b.id); }
+function pubState(){ pub("dn",{t:"state",from:S.uid,pri:S.pri,game:S.game,players:S.players}); }
 function pushState(){
   if(!(S.game&&S.game.status==="playing"&&S.game.turn===S.uid)) S.pending=null;
-  var msg={type:"state",game:S.game,players:S.players};
-  Object.keys(S.conns).forEach(function(k){ try{ S.conns[k].send(msg); }catch(e){} });
-  render();
+  pubState(); render();
 }
-function rejectConn(conn,msg){
-  try{ conn.send({type:"reject",msg:msg}); setTimeout(function(){ try{ conn.close(); }catch(e){} },400); }catch(e){}
-}
+function rejectId(id,msg){ pub("dn",{t:"reject",from:S.uid,to:id,msg:msg}); }
 function rejoinTarget(g,nick){
+  var now=Date.now();
   for(var i=0;i<g.order.length;i++){
     var id=g.order[i];
-    if(id!==S.uid && !S.conns[id] && nickOf(g,id)===nick) return id;
+    if(id===S.uid||nickOf(g,id)!==nick) continue;
+    var seen=S.seen[id]||0;
+    if(!S.conns[id]||now-seen>12000||(S.gone[id]&&seen<S.gone[id])) return id;
   }
   return null;
 }
@@ -289,111 +333,186 @@ function remapId(g,old,nw){
   g.nicks[nw]=g.nicks[old]; delete g.nicks[old];
   ["turn","lastBy","loser"].forEach(function(k){ if(g[k]===old) g[k]=nw; });
 }
-function hostDrop(id,conn){
-  if(!S.isHostNet||S.conns[id]!==conn) return;
-  delete S.conns[id];
+function hostDrop(id){
+  if(!S.isHostNet) return;
+  var was=S.players.some(function(p){ return p.id===id; });
+  delete S.conns[id]; delete S.seen[id]; delete S.gone[id];
+  if(!was) return;
   if(S.game&&S.game.status!=="playing") S.players=S.players.filter(function(p){ return p.id!==id; });
   pushState();
 }
-function hostHandle(conn,m){
-  if(!m||!S.isHostNet||!S.game) return;
-  var id=conn.peer, g=S.game;
-  if(m.type==="join"){
-    var nick=String(m.nick||"").trim().slice(0,10)||"손님";
-    var known=S.players.some(function(p){ return p.id===id; });
-    if(!known){
-      if(g.status==="playing"){
-        var old=rejoinTarget(g,nick);
-        if(!old){ rejectConn(conn,"이미 게임이 진행 중인 방이에요."); return; }
-        var g2=clone(g); remapId(g2,old,id); pushLog(g2,nick+" 님이 다시 들어왔어요.");
-        S.game=g2;
-        S.players=S.players.map(function(p){ return p.id===old?{id:id,nick:p.nick,joinedAt:p.joinedAt}:p; });
-      } else {
-        if(S.players.length>=MAX_PLAYERS){ rejectConn(conn,"이 방은 가득 찼어요 (최대 "+MAX_PLAYERS+"명)."); return; }
-        S.players.push({id:id,nick:nick,joinedAt:Date.now()});
-      }
+function hostJoin(id,m){
+  var g=S.game;
+  var nick=String(m.nick||"").trim().slice(0,10)||"손님";
+  var known=S.players.some(function(p){ return p.id===id; });
+  if(!known){
+    if(g.status==="playing"){
+      var old=rejoinTarget(g,nick);
+      if(!old){ rejectId(id,"이미 게임이 진행 중인 방이에요. 연결이 끊긴 거라면 같은 닉네임으로 잠시 후 다시 입장해 주세요."); return; }
+      var g2=clone(g); remapId(g2,old,id); pushLog(g2,nick+" 님이 다시 들어왔어요.");
+      S.game=g2;
+      S.players=S.players.map(function(p){ return p.id===old?{id:id,nick:p.nick,joinedAt:p.joinedAt}:p; });
+      delete S.conns[old]; delete S.seen[old];
+    } else {
+      if(S.players.length>=MAX_PLAYERS){ rejectId(id,"이 방은 가득 찼어요 (최대 "+MAX_PLAYERS+"명)."); return; }
+      S.players.push({id:id,nick:nick,joinedAt:Date.now()});
     }
-    S.conns[id]=conn;
-    pushState();
   }
-  else if(m.type==="play"){
-    if(g.status!=="playing"||g.turn!==id) return;
-    var card=String(m.card), opt=options(card,g.total)[+m.i];
-    if(!opt) return;
-    var g3=clone(g);
-    if(!applyPlay(g3,id,card,opt)) return;
-    S.game=g3; pushState();
-  }
-  else if(m.type==="leave"){ hostDrop(id,conn); }
+  S.conns[id]=true; S.seen[id]=Date.now(); delete S.gone[id];
+  pushState();
 }
-function guestHandle(m){
-  if(!m) return;
-  if(m.type==="state"){
+function hostPlay(id,m){
+  var g=S.game;
+  if(!g||g.status!=="playing"||g.turn!==id) return;
+  var card=String(m.card), opt=options(card,g.total)[+m.i];
+  if(!opt) return;
+  var g3=clone(g);
+  if(!applyPlay(g3,id,card,opt)) return;
+  S.game=g3; pushState();
+}
+function hostBus(kind,m){
+  if(kind==="dn"){
+    if(m.t==="state"&&m.from&&m.pri&&priLess(m.pri,S.pri)) yieldTo(m.from);
+    return;
+  }
+  if(kind!=="up") return;
+  var id=m.from;
+  if(!id) return;
+  if(m.t==="probe") pubState();
+  else if(m.t==="join") hostJoin(id,m);
+  else if(m.t==="play") hostPlay(id,m);
+  else if(m.t==="hb"){
+    if(S.players.some(function(p){ return p.id===id; })){ S.conns[id]=true; S.seen[id]=Date.now(); }
+    else pub("dn",{t:"kick",from:S.uid,to:id});
+  }
+  else if(m.t==="leave") hostDrop(id);
+}
+function sweep(){
+  if(S.role!=="host") return;
+  var now=Date.now();
+  Object.keys(S.conns).forEach(function(id){
+    var g=S.gone[id], seen=S.seen[id]||0;
+    if(now-seen>20000 || (g && seen<g && now-g>7000)) hostDrop(id);
+  });
+}
+function probeBus(kind,m){
+  if(kind==="dn"&&m.t==="state"&&m.from){
+    S.hostSeen=m.from;
+    if(S.probeRes) S.probeRes();
+  }
+}
+function sendJoin(){ pub("up",{t:"join",from:S.uid,nick:S.nick}); }
+function hostGone(msg){ toast(msg); resetLocal(); render(); }
+function guestBus(kind,m){
+  if(kind!=="dn") return;
+  if(m.t==="state"){
+    if(m.from!==S.hostId) return;
+    S.lastHost=Date.now(); S.goneAt=0;
     S.game=m.game; S.players=m.players||[];
     if(!(S.game&&S.game.status==="playing"&&S.game.turn===S.uid)) S.pending=null;
     render();
-  } else if(m.type==="reject"){
-    toast(m.msg||"입장할 수 없어요."); resetLocal(); render();
   }
+  else if(m.t==="reject"&&m.to===S.uid){ hostGone(m.msg||"입장할 수 없어요."); }
+  else if(m.t==="kick"&&m.to===S.uid){ sendJoin(); }
+  else if(m.t==="closed"&&m.from===S.hostId){ hostGone("방장이 방을 닫았어요."); }
+  else if(m.t==="moved"&&m.from===S.hostId){ S.hostId=m.host; S.lastHost=Date.now(); sendJoin(); }
 }
-function hostRoom(peer,code,nick){
-  S.peer=peer; S.net=true; S.isHostNet=true; S.uid=peer.id; S.conns={};
-  S.code=code; S.nick=nick; S.pending=null; S.rulesOpen=false; S.prevFill=0; S.prevColor="#2fc9a8";
+function onGone(from){
+  if(S.role==="host"&&S.conns[from]) S.gone[from]=Date.now();
+  else if(S.role==="guest"&&from===S.hostId) S.goneAt=Date.now();
+}
+function startWatch(){
+  clearInterval(S.wdT); clearInterval(S.gbT);
+  S.lastHost=Date.now(); S.goneAt=0;
+  S.wdT=setInterval(function(){
+    if(S.role!=="guest") return;
+    var now=Date.now();
+    if(now-S.lastHost>16000 || (S.goneAt&&S.lastHost<S.goneAt&&now-S.goneAt>6000))
+      hostGone("방장과 연결이 끊겼어요. 방이 닫혔을 수 있어요.");
+  },2000);
+  S.gbT=setInterval(function(){ if(S.role==="guest") pub("up",{t:"hb",from:S.uid}); },5000);
+}
+function becomeGuest(hostId){
+  S.role="guest"; S.hostId=hostId; S.isHostNet=false; S.net=true;
+  S.game=null; S.players=[]; S.pending=null; S.rulesOpen=false; S.prevFill=0; S.prevColor="#2fc9a8";
+  startWatch(); sendJoin();
+}
+function becomeHost(nick){
+  S.role="host"; S.isHostNet=true; S.net=true; S.hostId=S.uid;
+  S.pri={n:Math.random(),id:S.uid};
+  S.conns={}; S.seen={}; S.gone={};
+  S.pending=null; S.rulesOpen=false; S.prevFill=0; S.prevColor="#2fc9a8";
   S.players=[{id:S.uid,nick:nick,joinedAt:Date.now()}];
   S.game={status:"lobby",hostId:S.uid,round:0,created:Date.now()};
-  peer.on("connection",function(conn){
-    conn.on("data",function(m){ hostHandle(conn,m); });
-    conn.on("close",function(){ hostDrop(conn.peer,conn); });
-    conn.on("error",function(){ hostDrop(conn.peer,conn); });
-  });
-  peer.on("disconnected",function(){ try{ peer.reconnect(); }catch(e){} });
-  peer.on("error",function(e){ toast(netErr(e)); });
+  subAll([T("up")]);
+  pubState();
+  clearInterval(S.hbT); clearInterval(S.swT);
+  S.hbT=setInterval(function(){ if(S.role==="host") pubState(); },4000);
+  S.swT=setInterval(sweep,4000);
 }
-async function guestRoom(code,nick){
-  var peer=await openPeer(null);
-  var conn=peer.connect(netId(code),{reliable:true,serialization:"json"});
-  try{
-    await new Promise(function(res,rej){
-      var done=false;
-      function fail(e){ if(done) return; done=true; rej(e); }
-      conn.on("open",function(){ if(done) return; done=true; res(); });
-      peer.on("error",fail);
-      setTimeout(function(){ fail({type:"timeout"}); },12000);
-    });
-  }catch(e){ try{ peer.destroy(); }catch(x){} throw e; }
-  S.peer=peer; S.net=true; S.isHostNet=false; S.hostConn=conn; S.uid=peer.id; S.conns={};
-  S.code=code; S.nick=nick; S.game=null; S.players=[]; S.pending=null; S.rulesOpen=false; S.prevFill=0; S.prevColor="#2fc9a8";
-  conn.on("data",guestHandle);
-  conn.on("close",function(){ if(S.hostConn===conn){ toast("방장과 연결이 끊겼어요. 방이 닫혔을 수 있어요."); resetLocal(); render(); } });
-  peer.on("error",function(e){ toast(netErr(e)); });
-  peer.on("disconnected",function(){ try{ peer.reconnect(); }catch(e){} });
-  conn.send({type:"join",nick:nick});
+function yieldTo(winner){
+  if(S.role!=="host") return;
+  pub("dn",{t:"moved",from:S.uid,host:winner});
+  clearInterval(S.hbT); clearInterval(S.swT);
+  S.mqs.forEach(function(c){ try{ c.unsubscribe(T("up")); }catch(e){} });
+  S.isHostNet=false; S.conns={}; S.seen={}; S.gone={};
+  becomeGuest(winner);
+  render();
+}
+function waitJoined(ms){
+  return new Promise(function(res){
+    var t0=Date.now();
+    (function chk(){
+      if(S.role===null) return res(false);
+      if(S.game&&S.players.some(function(p){ return p.id===S.uid; })) return res(true);
+      if(Date.now()-t0>ms) return res(false);
+      setTimeout(chk,100);
+    })();
+  });
 }
 async function joinRoom(){
   if(S.joining||S.solo) return;
   var nick=S.nick.trim().slice(0,10);
   var code=sanitize(S.codeInput);
-  if(typeof Peer==="undefined"){ toast("연결 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요."); return; }
+  if(typeof mqtt==="undefined"){ toast("연결 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요."); return; }
   if(!nick){ toast("닉네임을 입력해 주세요."); return; }
   if(code.length<3){ toast("방 번호는 영문/숫자 3자 이상으로 정해 주세요."); return; }
   if(!/^[A-Z0-9]+([_-][A-Z0-9]+)*$/.test(code)){ toast("방 번호는 영문/숫자로 정해 주세요. (-, _ 는 중간에만 쓸 수 있어요)"); return; }
   try{ localStorage.setItem("g99_nick",nick); }catch(e){}
   S.joining=true; render();
+  var ok=false;
   try{
-    var peer=null;
-    try{ peer=await openPeer(netId(code)); }
-    catch(e){ if(!(e&&e.type==="unavailable-id")) throw e; }
-    if(peer) hostRoom(peer,code,nick);
-    else await guestRoom(code,nick);
-  }catch(e){ toast(netErr(e)); }
-  finally{ S.joining=false; render(); }
+    S.uid=newId(); S.code=code; S.nick=nick; S.role="probing"; S.hostSeen=null;
+    S.mqs=[]; S.conns={}; S.seen={}; S.gone={}; S.dedupe={}; S.dq=[]; S.seq=0;
+    await openBus(S.uid);
+    pub("up",{t:"probe",from:S.uid});
+    await new Promise(function(res){
+      S.probeRes=res;
+      setTimeout(function(){ if(!S.hostSeen) pub("up",{t:"probe",from:S.uid}); },1300);
+      setTimeout(res,PROBE_MS);
+    });
+    S.probeRes=null;
+    if(S.role!=="probing") throw {type:"x"};
+    if(S.hostSeen){
+      becomeGuest(S.hostSeen);
+      ok=await waitJoined(7000);
+      if(!ok&&S.role!==null){ toast("방에 들어가지 못했어요. 방번호가 맞는지, 방장이 아직 있는지 확인해 주세요."); resetLocal(); }
+    } else { becomeHost(nick); ok=true; }
+  }catch(e){
+    if(e&&e.type!=="x") toast(netErr(e));
+    if(!ok&&(S.role!==null||S.mqs.length)) resetLocal();
+  }
+  S.joining=false; render();
 }
 async function leaveRoom(){
   if(S.solo){
     clearTimeout(S.botTimer); S.botTimer=null; S.solo=false; S.uid=S.realUid; S.realUid=null;
     S.code=null; S.game=null; S.players=[]; S.pending=null; S.rulesOpen=false; render(); return;
   }
-  if(S.hostConn){ try{ S.hostConn.send({type:"leave"}); }catch(e){} }
+  try{
+    if(S.role==="guest") pub("up",{t:"leave",from:S.uid});
+    else if(S.role==="host") pub("dn",{t:"closed",from:S.uid});
+  }catch(e){}
   resetLocal(); render();
 }
 
@@ -436,9 +555,9 @@ async function playCard(card,opt){
   if(!g0||g0.status!=="playing"||g0.turn!==S.uid||S.busy) return;
   if(S.net&&!S.isHostNet){
     var oi=options(card,g0.total).findIndex(function(o){ return o.label===opt.label; });
-    if(oi<0||!S.hostConn) return;
+    if(oi<0) return;
     S.pending=null;
-    try{ S.hostConn.send({type:"play",card:card,i:oi}); }catch(e){ toast("연결이 불안정해요. 다시 시도해 주세요."); }
+    pub("up",{t:"play",from:S.uid,card:card,i:oi});
     render(); return;
   }
   var g=clone(g0);
@@ -734,6 +853,15 @@ document.addEventListener("click",function(e){
 });
 
 /* ---------- 시작 ---------- */
+window.addEventListener("pagehide",function(){
+  try{
+    if(S.role==="guest") pub("up",{t:"leave",from:S.uid});
+    else if(S.role==="host") pub("dn",{t:"closed",from:S.uid});
+  }catch(e){}
+});
+document.addEventListener("visibilitychange",function(){
+  if(!document.hidden&&S.role==="guest") S.lastHost=Date.now();
+});
 S.ready=true;
 render();
 })();
