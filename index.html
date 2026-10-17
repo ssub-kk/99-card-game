@@ -75,6 +75,8 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
 .top .name{font-size:22px;display:flex;align-items:center;gap:8px;white-space:nowrap;min-width:0}
 .top .meta{font-size:13px;color:var(--muted);text-align:right;white-space:nowrap;flex:none}
 .top .tag{white-space:nowrap;flex:none}
+.fxbtn{border:0;background:transparent;color:var(--ink);margin:0 -4px}
+.fxbtn.mute{color:var(--muted)}
 .top .side{display:flex;align-items:center;gap:6px;flex:none}
 .iconbtn{width:44px;height:44px;flex:none;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 @media (max-width:400px){ .wrap{padding-left:14px;padding-right:14px} .top .name{font-size:19px;gap:6px} .top .meta{font-size:12px} .top .tag{font-size:11px;padding:2px 8px} }
@@ -233,7 +235,7 @@ var S = {
   prevFill:0, prevColor:"#2fc9a8",
   leaveAsk:false, fx:true, fxNext:null, ghost:null, seenPlay:null, seenDir:1
 };
-var VERSION="1.1 · 261018";
+var VERSION="1.2 · 261018";
 try{ S.nick = localStorage.getItem("g99_nick") || ""; }catch(e){}
 try{ S.fx = localStorage.getItem("g99_fx")!=="0"; }catch(e){}
 
@@ -687,6 +689,13 @@ async function skipTurn(){
   await save(g);
 }
 /* ---------- 화면 조각 ---------- */
+/* 제목 바로 오른쪽 소리 켜기/끄기 (효과음·진동 함께) */
+function fxBtnHTML(){
+  return '<button class="iconbtn fxbtn'+(S.fx?'':' mute')+'" data-act="fx" aria-pressed="'+S.fx+'" aria-label="효과음·진동 '+(S.fx?'끄기':'켜기')+'">'+
+    '<svg viewBox="0 0 24 24" style="width:24px;height:24px;display:block" aria-hidden="true"><path d="M3 9 H7 L12 5 V19 L7 15 H3 Z" fill="currentColor"></path>'+
+    (S.fx?'<path d="M15.5 9 Q18 12 15.5 15 M18 6.5 Q22.5 12 18 17.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>'
+         :'<path d="M16 9.5 L21 14.5 M21 9.5 L16 14.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>')+'</svg></button>';
+}
 function dropSVG(color,w,h){
   return '<svg aria-hidden="true" viewBox="0 0 60 76" style="width:'+w+'px;height:'+h+'px;display:block;flex:none">'+
     '<path d="M30 4 C30 4 6 34 6 50 A24 24 0 0 0 54 50 C54 34 30 4 30 4 Z" fill="'+color+'"></path>'+
@@ -811,7 +820,7 @@ function runFx(g){
 
 /* ---------- 화면 ---------- */
 function homeHTML(){
-  var h='<div class="top"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1></div>'+
+  var h='<div class="top" style="justify-content:flex-start"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1>'+fxBtnHTML()+'</div>'+
     '<p class="sub">방 번호를 정하고, 친구에게 알려주면 같이 할 수 있어요.</p>';
   if(!S.ready){ return h+'<div class="panel sub">연결 중…</div>'; }
   h+='<div class="home2"><div class="panel">'+
@@ -835,7 +844,7 @@ function homeHTML(){
 function lobbyHTML(){
   var g=S.game, ids=S.players.map(function(p){return p.id;});
   var hostId=g&&g.hostId, hostPresent=ids.indexOf(hostId)>=0, isHost=hostId===S.uid;
-  var h='<div class="top"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1></div>'+
+  var h='<div class="top" style="justify-content:flex-start"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1>'+fxBtnHTML()+'</div>'+
     '<div class="panel" style="text-align:center"><div class="sub">방 번호</div>'+
     '<div class="roomcode">'+esc(S.code)+'</div>'+
     '<div class="row" style="justify-content:center;margin-top:8px"><button class="btn ghost sm" data-act="copy">방 번호 복사</button></div>'+
@@ -899,8 +908,7 @@ function sheetHTML(){
     '<div class="sheet" role="dialog" aria-label="게임 룰"><div class="row" style="justify-content:space-between"><h3>게임 룰</h3>'+
     '<button class="btn ghost sm" data-act="rules">닫기</button></div>'+
     '<div class="rule99">합계가 99를 넘기면 그 사람이 지고, 게임이 끝나요!</div>'+
-    rulesListHTML()+'<div class="foot">카드를 내면 덱에서 한 장 뽑아 항상 3장을 유지해요.</div>'+
-    '<button class="btn ghost sm" data-act="fx" aria-pressed="'+S.fx+'">효과음·진동 '+(S.fx?'켜짐':'꺼짐')+'</button></div>';
+    rulesListHTML()+'<div class="foot">카드를 내면 덱에서 한 장 뽑아 항상 3장을 유지해요.</div></div>';
 }
 function leaveSheetHTML(){
   return '<button class="scrim" aria-label="계속하기" data-act="leaveno"></button>'+
@@ -939,7 +947,7 @@ function gameHTML(){
   var playing=g.status==="playing", myTurn=playing&&g.turn===me;
   var inGame=g.order.indexOf(me)>=0;
   var isHost=g.hostId===me;
-  var h='<div class="top"><div class="name disp">'+dropSVG(BLUE,22,28)+'99 카드게임<span class="tag" style="font-family:\'Noto Sans KR\',sans-serif">'+(S.solo?'봇 대전':'방 '+esc(S.code))+'</span></div>'+
+  var h='<div class="top"><div class="name disp">'+dropSVG(BLUE,22,28)+'99 카드게임'+fxBtnHTML()+'<span class="tag" style="font-family:\'Noto Sans KR\',sans-serif">'+(S.solo?'봇 대전':'방 '+esc(S.code))+'</span></div>'+
     '<span class="side"><span class="meta">덱 '+g.deck.length+'장</span>'+
     '<button class="iconbtn" data-act="leave" aria-label="'+(S.solo?'그만하기':'방에서 나가기')+'"><svg viewBox="0 0 20 20" style="width:18px;height:18px" aria-hidden="true"><path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path></svg></button></span></div>';
   /* 참여자 사이 화살표 = 진행 방향 (4를 내면 뒤집힘) */
