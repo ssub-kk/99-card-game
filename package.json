@@ -1,0 +1,10 @@
+{
+  "name": "99-card-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "99 카드게임 - 정적 단일 HTML 파일 (GitHub Pages)",
+  "scripts": {
+    "test": "node tests/bots.test.js && node tests/net.test.js",
+    "serve": "python3 -m http.server 8000"
+  }
+}
