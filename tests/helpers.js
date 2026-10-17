@@ -6,7 +6,7 @@ const path = require('path');
 const EXPORTS = [
   'S', 'joinRoom', 'leaveRoom', 'startGame', 'playCard', 'skipTurn', 'startSolo',
   'options', 'botChoice', 'applyPlay', 'makeDeck', 'shuffle', 'nextPlayer', 'drawCard',
-  'nickOf', 'pushLog', 'clone', 'rank'
+  'nickOf', 'pushLog', 'clone', 'rank', 'netTick', 'fbInit'
 ];
 
 function loadScript() {
@@ -16,67 +16,120 @@ function loadScript() {
   return blocks[blocks.length - 1];
 }
 
-function buildHooked(src) {
+function buildHooked(src, fast = true) {
   const i = src.lastIndexOf('})();');
   let code = src.slice(0, i) + 'return {' + EXPORTS.map(n => n + ':' + n).join(',') + '};\n})();';
   code = code.replace('(function(){', 'return (function(){');
-  code = code.replace(/var PROBE_MS=\d+;/, 'var PROBE_MS=500;'); // 테스트는 빠르게
+  /* 시험은 빠르게: 방장 이어 받기·대기실 정리 기다림을 줄인다 */
+  if (fast) code = code.replace(/var DAY_MS=(\d+), HOST_GRACE=\d+, LOBBY_GRACE=\d+, TICK_MS=\d+;/,
+    'var DAY_MS=$1, HOST_GRACE=300, LOBBY_GRACE=300, TICK_MS=100;');
   return code;
 }
 
-// ---- 가짜 MQTT 중계 서버 (같은 URL 의 클라이언트끼리 토픽으로 메시지 전달) ----
-class Emitter {
-  constructor() { this.h = {}; }
-  on(e, f) { (this.h[e] = this.h[e] || []).push(f); return this; }
-  once(e, f) { const w = (...a) => { this.off(e, w); f(...a); }; return this.on(e, w); }
-  off(e, f) { this.h[e] = (this.h[e] || []).filter(x => x !== f); }
-  emit(e, ...a) { (this.h[e] || []).slice().forEach(f => f(...a)); }
-}
-
-function createFakeMqtt() {
-  const brokers = {};
-  const down = new Set(); // 접속 불가로 만들 브로커 URL
-  class Client extends Emitter {
-    constructor(url, opts) {
-      super();
-      this.url = url; this.options = opts; this.connected = false; this.subs = new Set();
-      if (down.has(url)) {
-        setTimeout(() => { this.emit('error', new Error('down')); this.emit('close'); }, 5);
-        return;
-      }
-      (brokers[url] = brokers[url] || { clients: new Set() }).clients.add(this);
-      setTimeout(() => { this.connected = true; this.emit('connect'); }, 3 + Math.random() * 10);
+// ---- 가짜 Firebase 실시간 DB (database.rules.json의 card99 규칙을 단순하게 흉내) ----
+function createFakeFirebase() {
+  const store = { v: {} };
+  const subs = new Set();
+  let uidSeq = 0;
+  const clone = v => v === undefined ? null : JSON.parse(JSON.stringify(v));
+  const parts = p => p.split('/').filter(Boolean);
+  const read = p => { let n = store.v; for (const k of parts(p)) { if (n == null || typeof n !== 'object') return null; n = n[k]; } return n === undefined ? null : n; };
+  const prune = v => {
+    if (v === null || typeof v !== 'object') return v;
+    const o = {}; for (const k of Object.keys(v)) { const c = prune(v[k]); if (c !== null && c !== undefined) o[k] = c; }
+    return Object.keys(o).length ? o : null;
+  };
+  const resolveTs = v => {
+    if (v && typeof v === 'object') { if (v['.sv'] === 'timestamp') return Date.now(); const o = {}; for (const k of Object.keys(v)) o[k] = resolveTs(v[k]); return o; }
+    return v;
+  };
+  const write = (p, v) => {
+    const ks = parts(p); v = resolveTs(clone(v));
+    if (!ks.length) { store.v = prune(v) || {}; return; }
+    let n = store.v;
+    for (let i = 0; i < ks.length - 1; i++) { if (n[ks[i]] == null || typeof n[ks[i]] !== 'object') n[ks[i]] = {}; n = n[ks[i]]; }
+    n[ks[ks.length - 1]] = v; store.v = prune(store.v) || {};
+  };
+  /* 규칙: rooms/<code>/... 만 다룬다 */
+  function allowed(uid, p, nv, isRead) {
+    const k = parts(p); if (k[0] !== 'card99' || k[1] !== 'rooms' || !k[2]) return false;
+    const room = read(k.slice(0, 3).join('/')) || null, host = room && room.host, sub = k[3];
+    if (isRead) {
+      if (!sub) return false;
+      if (sub === 'secret' || sub === 'req') return host === uid;
+      if (sub === 'hands') return k[4] === uid;
+      return true;
     }
-    subscribe(t) { (Array.isArray(t) ? t : [t]).forEach(x => this.subs.add(x)); }
-    unsubscribe(t) { this.subs.delete(t); }
-    publish(topic, payload) {
-      const b = brokers[this.url]; if (!b || !this.connected) return;
-      b.clients.forEach(c => {
-        if (c.connected && c.subs.has(topic)) {
-          const buf = Buffer.from(payload);
-          setTimeout(() => c.emit('message', topic, buf), 1 + Math.random() * 6);
-        }
-      });
+    if (!sub) {
+      if (nv == null) return host === uid;
+      return (!room || room.createdAt < Date.now() - 86400000) && nv.createdAt != null && nv.host === uid && /^[A-Z0-9_-]{3,12}$/.test(k[2]);
     }
-    end() { this.connected = false; const b = brokers[this.url]; if (b) b.clients.delete(this); }
-    // 비정상 종료 시뮬레이션: 브로커가 유언(will) 메시지를 대신 발행한다
-    _crash() {
-      const w = this.options.will; this.connected = false;
-      const b = brokers[this.url]; if (b) b.clients.delete(this);
-      if (w && b) b.clients.forEach(c => {
-        if (c.connected && c.subs.has(w.topic)) {
-          const buf = Buffer.from(w.payload);
-          setTimeout(() => c.emit('message', w.topic, buf), 2);
-        }
-      });
+    if (!room || room.createdAt == null) return false;
+    if (sub === 'host') {
+      if (nv == null) return false;
+      const ps = room.players || {};
+      return host === uid || (nv === uid && ps[uid] && ps[uid].on === true && !(ps[host] && ps[host].on === true));
+    }
+    if (sub === 'players') return k[4] === uid || host === uid;
+    if (sub === 'pub' || sub === 'secret' || sub === 'hands') return host === uid;
+    if (sub === 'req') return k[4] === uid && !!(room.players && room.players[uid]);
+    return false;
+  }
+  const deny = () => Promise.reject({ code: 'PERMISSION_DENIED' });
+  function notify() {
+    for (const s of subs) {
+      if (!s.c.connected && s.p !== '.info/connected') continue;
+      const v = s.p === '.info/connected' ? s.c.connected : (allowed(s.c.uid, s.p, null, true) ? read(s.p) : null);
+      const j = JSON.stringify(v ?? null);
+      /* 진짜 Firebase처럼 한 구독 안에서는 순서대로 도착 */
+      if (j !== s.last) { s.last = j; const val = clone(v); s.q = (s.q || Promise.resolve()).then(() => new Promise(r => setTimeout(r, 1 + Math.random() * 4))).then(() => s.on && s.cb(val)); }
     }
   }
-  return { mqtt: { connect: (u, o) => new Client(u, o) }, down };
+  function adapter() {
+    const c = { uid: 'fu' + (++uidSeq), connected: true, disc: new Map() };
+    const W = (p, v) => {
+      if (!c.connected) return new Promise(() => {});
+      if (!allowed(c.uid, p, v)) return deny();
+      write(p, v); notify(); return Promise.resolve();
+    };
+    const api = {
+      uid: c.uid, _c: c,
+      now: () => ({ '.sv': 'timestamp' }),
+      get: async p => { if (!allowed(c.uid, p, null, true)) throw { code: 'PERMISSION_DENIED' }; return clone(read(p)); },
+      set: W,
+      update: (p, obj) => {
+        if (!c.connected) return new Promise(() => {});
+        const keys = Object.keys(obj);
+        for (const k of keys) if (!allowed(c.uid, p + '/' + k, obj[k])) return deny();
+        keys.forEach(k => write(p + '/' + k, obj[k])); notify(); return Promise.resolve();
+      },
+      remove: p => W(p, null),
+      on: (p, cb) => { const s = { p, cb, c, last: undefined, on: true }; subs.add(s); notify(); return () => { s.on = false; subs.delete(s); }; },
+      onDisc: (p, v) => { c.disc.set(p, v); return Promise.resolve(); },
+      cancelDisc: p => { c.disc.delete(p); return Promise.resolve(); },
+      /* 진짜처럼: 내 화면엔 먼저 보이고(낙관적), 서버 확정은 조금 뒤 */
+      tx: async (p, fn) => {
+        const r = fn(clone(read(p))); if (r === undefined) return { committed: false };
+        for (const s of subs) if (s.c === c && s.p === p && s.on) { const v = clone(r); s.last = JSON.stringify(v); s.q = (s.q || Promise.resolve()).then(() => s.on && s.cb(v)); }
+        await wait(40); await W(p, r); return { committed: true };
+      },
+      online: b => { if (b) api._reconnect(); else api._crash(); },
+      /* 시험용: 갑자기 끊김(서버가 onDisconnect를 실행) / 다시 연결 */
+      _crash: () => {
+        if (!c.connected) return; c.connected = false;
+        for (const [p, v] of c.disc) if (allowed(c.uid, p, v)) write(p, v);
+        c.disc.clear(); notify();
+      },
+      _reconnect: () => { if (c.connected) return; c.connected = true; for (const s of subs) if (s.c === c) s.last = undefined; notify(); }
+    };
+    return api;
+  }
+  return { adapter, store, read };
 }
 
 // ---- 가짜 브라우저 환경 + 게임 인스턴스 하나(=접속한 사람 한 명) ----
-function createGameFactory(mqtt) {
-  const code = buildHooked(loadScript());
+function createGameFactory(winExtra = () => ({}), fast = true) {
+  const code = buildHooked(loadScript(), fast);
   return function makeClient() {
     const els = {}; const toasts = [];
     const el = id => els[id] || (els[id] = {
@@ -88,10 +141,9 @@ function createGameFactory(mqtt) {
     const document = { getElementById: el, addEventListener() {}, activeElement: null };
     const ls = {};
     const localStorage = { getItem: k => ls[k] || null, setItem: (k, v) => { ls[k] = v; } };
-    const f = new Function('document', 'localStorage', 'navigator', 'requestAnimationFrame',
-      'mqtt', 'window', 'TextDecoder', code);
-    const api = f(document, localStorage, { clipboard: { writeText: () => Promise.resolve() } },
-      fn => fn(), mqtt, { addEventListener() {} }, TextDecoder);
+    const window = Object.assign({ addEventListener() {} }, winExtra());
+    const f = new Function('document', 'localStorage', 'navigator', 'requestAnimationFrame', 'window', code);
+    const api = f(document, localStorage, { clipboard: { writeText: () => Promise.resolve() } }, fn => fn(), window);
     api.toasts = toasts;
     return api;
   };
@@ -105,4 +157,4 @@ function assert(cond, msg) {
 }
 function failCount() { return fails; }
 
-module.exports = { loadScript, buildHooked, createFakeMqtt, createGameFactory, wait, assert, failCount };
+module.exports = { loadScript, buildHooked, createFakeFirebase, createGameFactory, wait, assert, failCount };

@@ -7,14 +7,16 @@
 - 실행: `python3 -m http.server 8000` → `http://localhost:8000` (폰에서는 같은 와이파이의 PC IP로 접속)
 - 테스트: `node tests/bots.test.js && node tests/net.test.js` (또는 `npm test`)
   - 테스트는 `index.html` 안의 인라인 스크립트를 자동으로 꺼내 쓰므로 따로 빌드/동기화가 필요 없다.
-  - `net.test.js`는 가짜 MQTT 서버로 방장+친구 2명(동시 입장, 재입장, 방장 퇴장 등)을 검증한다. 진짜 인터넷 테스트는 아니다.
-- 배포: 저장소 루트에 `index.html`을 커밋하고 GitHub Pages(Settings → Pages → main / root)를 켠다.
+  - `net.test.js`는 가짜 Firebase(`helpers.js`의 `createFakeFirebase`, DB 규칙을 단순 흉내)로 동시 입장·패 숨김·방장 끊김/이어 받기·재입장·방 삭제를 검증한다.
+  - 진짜 서버 시험: `node _workspace\live.mjs`(Node 3명, 규칙까지) · `node _workspace\live-browser.mjs [주소]`(브라우저 2개). 둘 다 ssub-kk 실DB에 시험 방을 만들고 지운다.
+- 배포: GitHub `ssub-kk/99-card-game` main에 push → https://ssub-kk.github.io/99-card-game/ (Pages, main/root).
+- DB 규칙은 이 폴더가 아니라 `D:\studio\_firebase\database.rules.json`의 `card99` 칸 → `cd D:\studio\_firebase; npx firebase deploy --only database`.
 
 ## 파일 구조
 - `index.html` — 게임 전부(CSS + HTML + JS). JS는 하나의 IIFE, `/* ---------- 구역 ---------- */` 주석으로 나뉜다.
   유틸 → 규칙(`options`, `face`) → 저장(`save`) → 네트워크 → 게임 진행(`startGame`, `applyPlay`, `playCard`) → 봇 → 화면 조각 → 화면(`homeHTML`, `lobbyHTML`, `gameHTML`, `render`) → 이벤트(`data-act` 위임) → 시작.
-- `tests/` — Node 테스트(`helpers.js`가 스크립트 추출·가짜 MQTT·가짜 브라우저 환경 제공)
-- 외부 의존: Google Fonts(Do Hyeon, Noto Sans KR), `mqtt@5.10.1` (jsDelivr, 버전 고정). 새 라이브러리를 넣을 땐 **정확한 버전 고정**.
+- `tests/` — Node 테스트(`helpers.js`가 스크립트 추출·가짜 Firebase·가짜 브라우저 환경 제공)
+- 외부 의존: Google Fonts(Do Hyeon, Noto Sans KR), Firebase JS SDK `12.19.0`(gstatic, `fbInit`에서 동적 import, 버전 고정). 새 라이브러리를 넣을 땐 **정확한 버전 고정**.
 
 ## 게임 규칙
 - 52장 덱(`makeDeck`, 카드 id는 `숫자+무늬` 예: `7H`, `10S`). 무늬는 효과와 무관. 손패 3장, 낸 뒤 1장 뽑고(덱이 비면 버린 카드 섞어 재사용) 항상 3장 유지.
@@ -35,30 +37,31 @@
 - 규칙을 바꾸면 **`options`, `face`(카드 면 표시), `rulesData`(하단 룰 표시), 봇 점수(`botChoice`)** 를 같이 고치고 테스트를 돌린다.
 
 ## 상태 구조
-- `S` : 클라이언트 로컬 상태(내 id `uid`, `role`(probing|host|guest), `game`, `players`, `code`, `pending`, 솔로 여부 `solo` 등).
-- `S.game` (방장이 갖고 있는 진짜 상태, 모두에게 그대로 복제됨):
-  `status`(lobby|playing|ended), `hostId`, `round`, `order`(차례 순서 id 배열), `hands{id:[카드]}`, `deck`, `discard`, `total`, `prevTotal`, `turn`, `dir`(1|−1), `nicks{id:닉}`, `log`, `loser`, `lastCard`, `lastLabel`, `lastBy`.
-- `S.players` : `[{id,nick,joinedAt}]`.
+- `S` : 클라이언트 로컬 상태(내 id `uid`(=Firebase 익명 uid), `role`(host|guest), `isHostNet`(방장 이어 받기가 끝나 실제로 방장 노릇 중), `game`, `players`, `code`, `pending`, 솔로 여부 `solo`, `botLevel` 등).
+- `S.game` — 방장에겐 진짜 전체 상태, 친구에겐 `viewOf`로 만든 화면용 상태(남의 패는 장수만큼 `"?"`, 덱은 장수만큼 0):
+  `status`(lobby|playing|ended), `hostId`, `round`, `order`(차례 순서 id 배열), `hands{id:[카드]}`, `deck`, `discard`, `total`, `prevTotal`, `turn`, `dir`(1|−1), `nicks{id:닉}`, `log`, `loser`, `lastCard`, `lastLabel`, `lastBy`, `losses{id:진 횟수}`.
+- `S.players` : `[{id,nick,joinedAt,on}]` (DB `players`에서, 들어온 순).
 - 항상 `clone(S.game)`으로 복사해서 `applyPlay`로 바꾼 뒤 `save(g)`. 직접 `S.game`을 수정하지 않는다.
 
-## 네트워크 (멀티플레이) — 공개 MQTT 중계 + 방장 중심
-- 서버 없이 **무료 공개 MQTT 브로커 3곳**(`BROKERS`)에 동시에 접속해 같은 메시지를 모두 발행하고, 받는 쪽은 `mid`로 중복 제거한다(한 곳이 죽어도 동작).
-  WebRTC 직접 연결은 통신사/공유기(NAT) 때문에 자주 실패해서 버렸다.
-- 토픽: `g99/<NS>/<방번호 소문자>/{up,dn,ev}`. `NS`는 이 배포 전용 구분 문자(다른 배포의 같은 번호와 섞이지 않게).
-  - `up`(친구→방장): `probe`, `join{nick}`, `play{card,i}`(i = `options` 배열 인덱스), `hb`, `leave`
-  - `dn`(방장→모두): `state{pri,game,players}`(변경마다 + 4초 하트비트), `reject{to,msg}`, `kick{to}`, `closed`, `moved{host}`
-  - `ev`: MQTT 유언(will) `{t:"gone",from}` — 연결이 비정상으로 끊긴 사람을 알림(힌트로만 사용, 곧바로 퇴장시키지 않음).
-- 입장 절차(`joinRoom`): 브로커 접속 → `probe`를 보내고 `PROBE_MS`(2.6초) 동안 `dn`의 `state`를 기다림 → 있으면 **guest**로 `join`, 없으면 **host**가 되어 `state`를 발행.
-- 동시에 둘 이상이 방장이 되면 `pri={n:랜덤,id}`가 **작은 쪽이 방장**, 진 쪽은 `moved`를 보내고 guest로 전환(`yieldTo`).
-- 방장이 규칙을 검증한다(`hostPlay`: 내 차례인지, 손패에 있는 카드인지, 선택지 인덱스가 유효한지). 친구는 요청만 보내고 `state`를 받아 그린다.
-- 연결 관리: 친구 하트비트 5초 / 방장 `state` 4초 / 친구는 16초간 방장 소식이 없으면 홈으로 / 방장은 20초(또는 will 후 7초) 소식이 없으면 퇴장 처리(`sweep`). 로비에서는 목록에서 제거, 게임 중에는 자리를 유지.
-- 게임 중 끊긴 친구는 **같은 닉네임으로 재입장**하면 `remapId`로 패를 이어받는다(`rejoinTarget`).
-- 방장이 나가면 방이 닫힌다(방장 이전 없음).
+## 네트워크 (멀티플레이) — Firebase 실시간 DB + 방장 중심
+- 프로젝트 `ssub-kk`(웹 앱 card99, 설정값 `FB_CONFIG`는 공개용이라 코드에 둔다), 익명 로그인. DB 칸: `card99/rooms/<방번호>/`
+  - `createdAt`, `host`(방장 uid), `players/<uid>{nick,at,on}` — `on`은 `.info/connected` + `onDisconnect`로 관리, 탭을 떠나면(`pagehide`) `goOffline`.
+  - `pub` 공개 상태 JSON `{m,g}`(손패·덱 대신 `hc`·`dk` 장수), `secret` 전체 상태(방장만 읽음), `hands/<uid>` 내 손패(나만 읽음), `req/<uid>` 낼 카드 요청 `{m,card,i}`.
+  - 깊은 상태는 RTDB가 빈 배열을 지우므로 **JSON 글자로 통째 저장**. `m`은 방장이 상태를 바꿀 때마다 +1, 요청의 `m`이 현재와 다르면 무시(옛 요청 재적용 방지).
+- 입장(`joinRoom`): 방이 없거나 하루 지났으면 만들고 방장, 있으면 `players`에 나를 쓰고 친구. 진행 중인 방은 같은 닉네임의 끊긴 자리가 있을 때만 `re`로 이어 받기(방장이 `remapId`).
+- 방장이 규칙을 검증한다(`onReq`: 차례·손패·선택지). 상태가 바뀌면 `pushState`가 `pub`·`secret`·`hands/*`를 한 번에 `update`.
+- **방장 이어 받기**: 방장 `on=false`가 `HOST_GRACE`(6초) 넘으면 접속 중인 사람 중 먼저 들어온 사람이 `host`를 트랜잭션으로 가져가고(`netTick`), `secret`을 읽어 같은 판을 이어 간다(`takeHost`). 트랜잭션은 내 화면에 먼저 보이므로 **`secret` 읽기가 허락될 때까지 다시 시도**하고, 다 읽은 뒤에야 `isHostNet=true`.
+- 방장이 '나가기'를 누르면 다음 사람에게 `host`를 넘기고, 아무도 없으면 방을 지운다. 대기실에서 `LOBBY_GRACE`(8초) 넘게 끊긴 사람은 방장이 목록에서 지운다. 게임 중엔 자리 유지(방장의 '건너뛰기').
+- 초대 링크 `?room=번호`(대기실 '초대 링크 복사'), 열면 방 번호가 채워진다.
+- DB 규칙(`D:\studio\_firebase\database.rules.json`): 방 만들기는 없거나 하루 지난 방만 · `host` 변경은 현재 방장이거나(넘기기) 방장이 끊겼을 때 접속 중인 사람만 · `pub/secret/hands`는 방장만 씀 · `req/<uid>`는 본인만.
+- 한계: 방장 기기는 전체 상태를 가지므로 방장은 남의 패를 볼 수 있다(서버 함수 없이 하는 한 어쩔 수 없음).
 
 ## 솔로 모드 (봇)
 - 홈의 "혼자 하기": 네트워크 없이 로컬에서 동작. `S.solo=true`, 내 id는 `"me"`, 봇은 `bot1..3`(`BOT_NAMES`).
 - `save()`가 솔로일 땐 `S.game`에 바로 넣고 `botTick()`이 봇 차례에 1~1.7초 뒤 `botPlay()`를 실행.
-- `botChoice`: 99 안 넘는 선택지 중 합계가 높은 쪽을 선호(+잡음), K는 합계 70 이상일 때만, 4·9는 80 이상일 때 아껴 쓰는 식.
+- `botChoice(g,id,lv)` 실력 3단계(`BOT_LEVELS`, 홈에서 고름, `g99_lv` 저장):
+  - `easy` 안전한 선택지 중 아무거나 / `normal` 합계가 높은 쪽 선호(+잡음), K는 70 이상, 4·9는 80 이상에서 / `hard` 다음 사람이 막힐 확률(`stuckChance`)을 높이고 탈출 카드(A·4·9·10·K)를 아끼며 내 다음 차례 안전도 본다.
+  - `bots.test.js`가 1:1 4000판으로 어려움 < 보통 < 쉬움 패배율을 확인(어려움 vs 보통 ≈ 25%, 보통 vs 쉬움 ≈ 43%).
 
 ## 화면/디자인 규칙
 - 모바일 우선(갤럭시 360×780 기준). 헤더 "99 카드게임 · 봇 대전 · 덱 n장 · ✕(그만하기)"는 **한 줄**로 유지(좁은 화면용 `@media (max-width:400px)` 있음).
@@ -76,14 +79,13 @@
 
 ## 건드릴 때 주의
 - `index.html` 하나로 유지(빌드 도구·번들러 도입 금지, 외부 CSS/JS는 고정 버전 CDN만).
-- 프로토콜(메시지 이름/필드)을 바꾸면 **이미 열려 있는 옛 페이지와 통신이 안 된다**. 바꿀 때는 `NS`에 버전을 붙이는 식으로 방을 분리하고, 친구들에게 새로고침을 안내한다.
+- DB 칸 구조나 `pub/secret` 모양을 바꾸면 **이미 열려 있는 옛 페이지와 통신이 안 된다**. 바꿀 때는 `GAME_ID`를 바꿔(규칙 칸도 함께) 방을 분리하고, 친구들에게 새로고침을 안내한다.
 - `S.game`에 필드를 추가하면 `startGame`의 초기 객체, `applyPlay`, 종료 화면(`endHTML`), 재입장(`remapId`)도 확인한다.
 - 수정 후에는 `npm test`, 그리고 360px 폭에서 솔로 모드 화면을 직접 확인한다(Playwright로 스크린샷을 찍어도 좋다).
 
 ## 알려진 한계 / 개선 아이디어
-- 공개 MQTT 브로커는 가동 보장이 없다 → 더 안정적으로 하려면 Firebase(RTDB)나 Cloudflare Durable Objects 같은 자체 백엔드로 `네트워크` 구역만 교체(메시지 규약은 그대로 재사용 가능).
-- 방장이 모든 사람의 패를 `state`에 담아 보내므로 개발자도구로 남의 패를 볼 수 있다(치팅 방지 안 됨). 개인별로 패를 따로 보내도록 개선 가능.
-- 방장이 나가면 방이 닫힘 → 방장 자동 이전.
-- 방번호가 4자리 숫자라 같은 배포를 쓰는 다른 사람과 우연히 겹칠 수 있음.
-- 접근성(스크린리더), 봇 난이도 선택, 재접속 UX 개선.
+- 방장은 남의 패를 볼 수 있음(위 '한계'). 막으려면 Cloud Functions(유료 Blaze)로 판을 서버에서 돌려야 함.
+- Firebase 무료(Spark) RTDB는 동시 접속 100명까지.
+- 방번호가 짧으면 다른 사람과 우연히 겹칠 수 있음 → '랜덤'이나 긴 번호 권장.
+- 접근성(스크린리더).
 - 버전·변경 기록은 `패치노트.md`, 화면 점검은 `node _workspace\review.mjs`(7기기 숫자) · `node _workspace\shots.mjs`(눈 확인용 스크린숏, 보고 나서 지움).
