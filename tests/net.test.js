@@ -54,6 +54,11 @@ async function playOut(clients, steps = 400) {
   let cheat = null; try { await dbOf(guests[0]).set(R('4821') + '/pub', 'x'); } catch (e) { cheat = e; }
   assert(cheat, '친구는 공개 상태를 직접 못 고침');
 
+  // 2-1) 접속 중인 사람 차례는 방장이 건너뛸 수 없음 (잠깐 끊겨도 바로 패스되지 않게)
+  const t0 = host.S.game.turn, m1 = host.S.m;
+  await host.skipTurn(); await wait(50);
+  assert(host.S.m === m1 && host.S.game.turn === t0, '접속 중인 사람 차례는 건너뛸 수 없음');
+
   // 3) 끝까지 진행 / 한 판 더
   const n = await playOut(all); await wait(100);
   assert(host.S.game.status === 'ended' && host.S.game.loser, `게임 종료 (${n}번 냄)`);
@@ -106,6 +111,26 @@ async function playOut(clients, steps = 400) {
   assert(H2.S.isHostNet && H2.S.players.length === 2 && X.S.isHostNet && X.S.players.length === 1, '다른 방번호는 별도 방');
   dbOf(A2)._crash(); await wait(800);
   assert(H2.S.players.length === 1, '대기실에서 끊긴 사람은 목록에서 빠짐');
+
+  // 9-1) 2명 게임엔 방향 반대(4) 카드가 없음
+  const [P, Q] = [mk(), mk()];
+  await enter(P, '둘이1', '5555'); await enter(Q, '둘이2', '5555'); await wait(150);
+  await P.startGame(); await wait(150);
+  const all4 = [...P.S.game.deck, ...Object.values(P.S.game.hands).flat()];
+  assert(P.S.game.status === 'playing' && all4.length === 48 && !all4.some(c => c.startsWith('4')), '2명 게임엔 4 카드가 빠짐 (48장)');
+
+  // 9-2) 차례인 사람이 잠깐 끊기면 '기다리는 중', 오래 끊겨야 건너뛰기 가능
+  if (P.S.game.turn === P.S.uid) {
+    const g = P.S.game, card = g.hands[P.S.uid].find(c => P.options(c, g.total).some(o => !o.over));
+    await P.playCard(card, P.options(card, g.total).find(o => !o.over)); await wait(100);
+  }
+  {
+    dbOf(Q)._crash(); await wait(150);
+    const mA = P.S.m; await P.skipTurn(); await wait(30);
+    const early = P.S.m === mA;
+    await wait(400); await P.skipTurn(); await wait(50);
+    assert(early && P.S.m > mA && P.S.game.turn === P.S.uid, '잠깐 끊긴 사람은 안 건너뛰고, 오래 끊겨야 건너뛰기');
+  }
 
   // 10) 연결이 안 되면 안내 문구
   const Y = createGameFactory(() => ({ FB_ADAPTER: async () => { throw { code: 'network' }; } }))();

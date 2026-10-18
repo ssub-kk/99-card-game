@@ -21,8 +21,12 @@ function buildHooked(src, fast = true) {
   let code = src.slice(0, i) + 'return {' + EXPORTS.map(n => n + ':' + n).join(',') + '};\n})();';
   code = code.replace('(function(){', 'return (function(){');
   /* 시험은 빠르게: 방장 이어 받기·대기실 정리 기다림을 줄인다 */
-  if (fast) code = code.replace(/var DAY_MS=(\d+), HOST_GRACE=\d+, LOBBY_GRACE=\d+, TICK_MS=\d+;/,
-    'var DAY_MS=$1, HOST_GRACE=300, LOBBY_GRACE=300, TICK_MS=100;');
+  if (fast) {
+    const before = code;
+    code = code.replace(/var DAY_MS=(\d+), HOST_GRACE=\d+, LOBBY_GRACE=\d+, TICK_MS=\d+, SKIP_WAIT=\d+;/,
+      'var DAY_MS=$1, HOST_GRACE=300, LOBBY_GRACE=300, TICK_MS=100, SKIP_WAIT=300;');
+    if (code === before) throw new Error('시간 상수 줄을 못 찾음 — index.html의 DAY_MS 줄과 맞출 것');
+  }
   return code;
 }
 
