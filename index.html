@@ -185,10 +185,6 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
 .end .mini{width:50px;height:70px;border-radius:9px;background:var(--ivory);border:1px solid var(--card-back);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:none}
 .end .res .t1{font-size:13px;font-weight:700;color:var(--card-sub)}
 .end .res .t2{font-size:18px;font-weight:700;color:var(--card-ink)}
-.end .score{list-style:none;margin:0;padding:10px 16px;border-radius:20px;background:var(--ivory);display:flex;flex-direction:column;gap:2px}
-.end .score li{display:flex;justify-content:space-between;gap:12px;font-size:15px;min-height:30px;align-items:center}
-.end .score .lose{font-weight:700}
-.end .score small{font-size:12px;font-weight:700;color:var(--card-sub)}
 .end .btns{display:flex;gap:16px}
 .end .btns .btn{flex:1;min-height:54px;font-size:16px;background:var(--card-ink);border-color:var(--card-ink);color:var(--ivory)}
 .end .btns .btn.ghost{background:transparent;color:var(--card-ink)}
@@ -204,7 +200,6 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
   .end .res{padding:8px 12px}
   .end .mini{width:34px;height:46px}
   .end .mini svg{width:26px!important;height:33px!important}
-  .end .score li{min-height:26px}
   .end .btns .btn{min-height:48px}
 }
 @media (max-height:640px){ .end .res{display:none} }
@@ -247,7 +242,7 @@ var S = {
   prevFill:0, prevColor:"#2fc9a8",
   leaveAsk:false, fx:true, fxNext:null, ghost:null, seenPlay:null, seenDir:1
 };
-var VERSION="1.5 · 261019";
+var VERSION="1.6 · 261019";
 try{ S.nick = localStorage.getItem("g99_nick") || ""; }catch(e){}
 try{ S.fx = localStorage.getItem("g99_fx")!=="0"; }catch(e){}
 try{ var lv0=localStorage.getItem("g99_lv"); if(lv0==="easy"||lv0==="hard") S.botLevel=lv0; }catch(e){}
@@ -971,9 +966,6 @@ function endHTML(g){
     return '<span class="bubble" aria-hidden="true" style="left:'+b[0]+'px;top:'+b[1]+'px;width:'+b[2]+'px;height:'+b[2]+'px"></span>';
   }).join("");
   var surf='<svg class="surface" aria-hidden="true" viewBox="0 0 390 28" preserveAspectRatio="none"><path d="M0 0 H390 V14 Q 366 28 342 14 T 294 14 T 246 14 T 198 14 T 150 14 T 102 14 T 54 14 T 6 14 Z" fill="var(--vermil-hi)"></path></svg>';
-  var ls=g.losses||{}, score='<ul class="score"><li><small>누적 · '+g.round+'판</small><small>진 횟수</small></li>'+g.order.map(function(id){
-    return '<li'+(id===loser?' class="lose"':'')+'><span>'+esc(nickOf(g,id))+meTag(g,id)+'</span><span>'+(ls[id]||0)+'</span></li>';
-  }).join("")+'</ul>';
   return '<div class="end" role="dialog" aria-label="게임 종료"><div class="in">'+surf+bubbles+
     '<div class="head"><span style="font-size:15px;font-weight:700;letter-spacing:.3em">게임 종료</span>'+
     '<span class="big" style="--bs:'+bigSize+'px">'+total+'</span>'+
@@ -983,7 +975,7 @@ function endHTML(g){
     '<div style="display:flex;flex-direction:column;gap:14px">'+
     (g.lastCard?'<div class="res"><div class="mini">'+bareDrop(f.drop,38,48)+'</div>'+
       '<div style="display:flex;flex-direction:column;gap:2px"><span class="t1">마지막으로 낸 카드'+((g.lastLabel||f.top)?' · '+esc(g.lastLabel||f.top):'')+'</span>'+
-      '<span class="t2">합계 '+g.prevTotal+' → '+total+'</span></div></div>':'')+score+
+      '<span class="t2">합계 '+g.prevTotal+' → '+total+'</span></div></div>':'')+
     (isHost?'<div class="btns"><button class="btn" data-act="start"'+(S.busy?' disabled':'')+'>한 판 더</button><button class="btn ghost" data-act="leave">나가기</button></div>'
            :'<div class="wait">방장이 다시 시작하길 기다려요</div><div class="btns"><button class="btn ghost" data-act="leave">나가기</button></div>')+
     '</div></div></div>';
