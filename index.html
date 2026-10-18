@@ -87,12 +87,10 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
 .pl.turn{border-color:var(--turn)}
 .pl.me .pn{color:var(--turn)}
 .pl .pn{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pl .ps{display:flex;justify-content:center;gap:3px;margin-top:5px;min-height:14px}
 .dirw{width:12px;flex:none;color:var(--muted);display:flex;justify-content:center}
 .dirw svg{width:10px;height:12px;display:block}
 .players.flip .dirw svg{animation:flip .5s ease-out}
 @keyframes flip{from{transform:scaleX(-1)}to{transform:none}}
-.back{width:10px;height:14px;border-radius:2px;background:var(--card-back)}
 .banner{text-align:center;font-size:15px;font-weight:700;min-height:22px}
 .banner.me{color:var(--turn)}
 /* 탱크 — 남는 높이를 채우고, 안의 숫자판은 탱크 높이(cqh)에 맞춰 줄어든다 */
@@ -196,6 +194,20 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
 .end .btns .btn.ghost{background:transparent;color:var(--card-ink)}
 .end .wait{text-align:center;font-size:14px;font-weight:700}
 .end .bubble{position:absolute;border-radius:50%;background:rgba(246,241,230,.4)}
+.end .big{font-size:var(--bs)}
+.end .oops{font-size:46px;line-height:1.1;margin-top:4px}
+/* 폰 주소창·하단바 때문에 화면이 낮으면 종료 화면을 줄여 '한 판 더'까지 한 화면에 */
+@media (max-height:720px){
+  .end .in{padding-top:36px;gap:12px}
+  .end .big{font-size:min(var(--bs),17dvh)}
+  .end .oops{font-size:min(46px,6.5dvh)}
+  .end .res{padding:8px 12px}
+  .end .mini{width:34px;height:46px}
+  .end .mini svg{width:26px!important;height:33px!important}
+  .end .score li{min-height:26px}
+  .end .btns .btn{min-height:48px}
+}
+@media (max-height:640px){ .end .res{display:none} }
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));
   background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:14px;max-width:90vw;
   opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;text-align:center}
@@ -235,7 +247,7 @@ var S = {
   prevFill:0, prevColor:"#2fc9a8",
   leaveAsk:false, fx:true, fxNext:null, ghost:null, seenPlay:null, seenDir:1
 };
-var VERSION="1.4 · 261018";
+var VERSION="1.5 · 261019";
 try{ S.nick = localStorage.getItem("g99_nick") || ""; }catch(e){}
 try{ S.fx = localStorage.getItem("g99_fx")!=="0"; }catch(e){}
 try{ var lv0=localStorage.getItem("g99_lv"); if(lv0==="easy"||lv0==="hard") S.botLevel=lv0; }catch(e){}
@@ -730,7 +742,8 @@ function dropSVG(color,w,h){
 function cardDropSVG(color){
   return '<svg aria-hidden="true" viewBox="0 0 60 76" preserveAspectRatio="xMidYMid meet">'+
     '<path d="M30 2 C30 2 4 33 4 50 A26 26 0 0 0 56 50 C56 33 30 2 30 2 Z" fill="'+color+'"></path>'+
-    '<circle cx="25.5" cy="21" r="2" fill="#14202a"></circle><circle cx="34.5" cy="21" r="2" fill="#14202a"></circle></svg>';
+    '<circle cx="25.5" cy="21" r="2" fill="#14202a"></circle><circle cx="34.5" cy="21" r="2" fill="#14202a"></circle>'+
+    '<path d="M27.6 25.6 Q30 28.2 32.4 25.6" fill="none" stroke="#14202a" stroke-width="1.4" stroke-linecap="round"></path></svg>';
 }
 function bareDrop(color,w,h){
   return '<svg aria-hidden="true" viewBox="0 0 60 76" style="width:'+w+'px;height:'+h+'px;display:block;flex:none"><path d="M30 4 C30 4 6 34 6 50 A24 24 0 0 0 54 50 C54 34 30 4 30 4 Z" fill="'+color+'"></path></svg>';
@@ -963,9 +976,9 @@ function endHTML(g){
   }).join("")+'</ul>';
   return '<div class="end" role="dialog" aria-label="게임 종료"><div class="in">'+surf+bubbles+
     '<div class="head"><span style="font-size:15px;font-weight:700;letter-spacing:.3em">게임 종료</span>'+
-    '<span class="big" style="font-size:'+bigSize+'px">'+total+'</span>'+
+    '<span class="big" style="--bs:'+bigSize+'px">'+total+'</span>'+
     '<span class="pill">99 초과 +'+over+'</span>'+
-    '<span class="disp" style="font-size:46px;line-height:1.1;margin-top:4px">넘쳤어요!</span>'+
+    '<span class="disp oops">넘쳤어요!</span>'+
     '<span style="font-size:16px;font-weight:500">'+(iLost?'내가':esc(nickOf(g,loser))+'님이')+' 합계를 99 넘게 만들었어요</span></div>'+
     '<div style="display:flex;flex-direction:column;gap:14px">'+
     (g.lastCard?'<div class="res"><div class="mini">'+bareDrop(f.drop,38,48)+'</div>'+
@@ -987,10 +1000,9 @@ function gameHTML(){
   var arrow='<span class="dirw" aria-hidden="true"><svg viewBox="0 0 10 12"><path d="'+(g.dir===1?'M2 1 L8 6 L2 11':'M8 1 L2 6 L8 11')+'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>';
   var ph='<div class="players" aria-label="진행 방향 '+(g.dir===1?'오른쪽':'왼쪽')+'">';
   g.order.forEach(function(id,k){
-    var isTurn=playing&&g.turn===id, n=(g.hands[id]||[]).length, b="";
-    for(var i=0;i<n;i++) b+='<span class="back"></span>';
+    var isTurn=playing&&g.turn===id;
     if(k) ph+=arrow;
-    ph+='<div class="pl'+(isTurn?' turn':'')+(id===me?' me':'')+'"><div class="pn">'+esc(nickOf(g,id))+meTag(g,id)+'</div><div class="ps">'+b+'</div></div>';
+    ph+='<div class="pl'+(isTurn?' turn':'')+(id===me?' me':'')+'"><div class="pn">'+esc(nickOf(g,id))+meTag(g,id)+'</div></div>';
   });
   ph+='</div>';
   h+=ph;
