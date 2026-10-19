@@ -99,13 +99,14 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
 .banner{text-align:center;font-size:15px;font-weight:700;min-height:22px}
 .banner.me{color:var(--turn)}
 /* 탱크(비커) — 남는 높이를 채운다. 위가 열린 유리컵 + 입구 테두리 + 왼쪽 위 따르는 입 */
-.tank{position:relative;flex:1 1 0;min-height:150px;max-height:330px}
+/* 비커는 세로로 긴 직사각형 가로5:세로8: 폭 --bw = 비커 높이(탱크 높이−12px)×5/8(탱크 폭을 넘지 않음), 가운데 정렬 --bx = 왼쪽 끝 */
+.tank{position:relative;flex:1 1 0;min-height:150px;max-height:330px;container-type:size;--bw:min(calc(100cqw - 20px),calc((100cqh - 12px) * .625));--bx:calc(50cqw - var(--bw) / 2)}
 .wrap.g>*{flex:none}
 .wrap.g>.tank{flex:1 1 0}
-.beaker{position:absolute;left:10px;right:10px;top:12px;bottom:0;container-type:size;border:3px solid var(--glass-line);border-top:0;
-  border-radius:0 0 30px 30px;background:var(--tank);overflow:hidden}
-.rim{position:absolute;left:2px;right:2px;top:6px;height:7px;border-radius:4px;background:var(--glass-line)}
-.spout{position:absolute;left:-2px;top:2px;width:22px;height:7px;border-radius:4px;background:var(--glass-line);transform:rotate(-24deg);transform-origin:100% 50%}
+.beaker{position:absolute;left:var(--bx);width:var(--bw);top:12px;bottom:0;box-sizing:border-box;container-type:size;border:3px solid var(--glass-line);border-top:0;
+  border-radius:0 0 12px 12px;background:var(--tank);overflow:hidden}
+.rim{position:absolute;left:calc(var(--bx) - 8px);width:calc(var(--bw) + 16px);top:6px;height:7px;border-radius:4px;background:var(--glass-line)}
+.spout{position:absolute;left:calc(var(--bx) - 12px);top:2px;width:22px;height:7px;border-radius:4px;background:var(--glass-line);transform:rotate(-24deg);transform-origin:100% 50%}
 .shine{position:absolute;left:12px;top:14px;bottom:24px;width:7px;border-radius:4px;background:var(--glass-hi);z-index:2;pointer-events:none}
 .tick{position:absolute;right:0;display:flex;align-items:center;gap:4px;transform:translateY(50%);z-index:2;pointer-events:none;font-size:11px;font-weight:700;color:var(--muted)}
 .tick i{display:block;width:12px;height:2px;border-radius:1px;background:var(--glass-line)}
@@ -122,7 +123,7 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
 .bub{position:absolute;border-radius:50%;background:rgba(255,255,255,.3)}
 /* 합계 숫자: 물 밖 겹(.dry)과 물 속 겹(.wet)을 같은 자리(비커 바닥 기준)에 두고, 물 속 겹은 물 높이에서 잘린다.
    숫자는 수면 바로 아래에 떠서 물과 같이 오르내리고, 물이 적으면 바닥에 앉아 반쯤 잠긴다. --f = 물 높이(%) */
-.nb{position:absolute;left:0;right:0;--fs:min(128px,44cqh);--t:translateX(0);height:calc(var(--fs) + 20px);
+.nb{position:absolute;left:0;right:0;--fs:min(128px,44cqh,58cqw);--t:translateX(0);height:calc(var(--fs) + 20px);
   bottom:max(10px,min(calc(var(--f) * 1cqh - var(--fs) - 32px),calc(100cqh - var(--fs) - 84px)));
   display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;transform:var(--t);
   transition:bottom .7s cubic-bezier(.3,.8,.3,1)}
@@ -131,9 +132,9 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
 .nb.dry small{color:var(--muted)}
 .nb.dry small.near{color:var(--warn-ink)}
 .nb.wet{color:var(--wet-ink);--t:scaleX(1.05) translateX(1px)}
-.tank.pick .nb{--fs:min(80px,26cqh);bottom:max(96px,min(calc(var(--f) * 1cqh - var(--fs) - 32px),calc(100cqh - var(--fs) - 30px)))}
+.tank.pick .nb{--fs:min(80px,26cqh,50cqw);bottom:max(96px,min(calc(var(--f) * 1cqh - var(--fs) - 32px),calc(100cqh - var(--fs) - 30px)))}
 .tank.pick .lastp{display:none}
-.lastp{position:absolute;left:24px;top:24px;max-width:calc(100% - 100px);display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;
+.lastp{position:absolute;left:calc(var(--bx) + 12px);top:24px;max-width:calc(var(--bw) - 60px);display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;
   border-radius:12px;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--ink);z-index:3}
 .lastp .mc{width:24px;height:32px;flex:none;border-radius:5px;background:var(--ivory);color:var(--card-ink);border:1px solid var(--card-back);
   display:flex;align-items:center;justify-content:center;font-family:"Do Hyeon",sans-serif;font-size:16px}
@@ -242,7 +243,7 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
   .wrap.g>.top{grid-area:top} .wrap.g>.players{grid-area:players} .wrap.g>.banner{grid-area:banner}
   .wrap.g>.tank{grid-area:tank;max-height:none;min-height:0} .wrap.g>.hand{grid-area:hand;align-self:center} .wrap.g>.gfoot{grid-area:foot}
   .banner{font-size:18px}
-  .wrap.g .nb{--fs:min(200px,44cqh)} .wrap.g .tank.pick .nb{--fs:min(110px,26cqh)}
+  .wrap.g .nb{--fs:min(200px,44cqh,58cqw)} .wrap.g .tank.pick .nb{--fs:min(110px,26cqh,50cqw)}
 }
 </style>
 </head>
@@ -265,7 +266,7 @@ var S = {
   prevFill:0, prevColor:"#2fc9a8",
   leaveAsk:false, fx:true, theme:null, fxNext:null, ghost:null, seenPlay:null, seenDir:1
 };
-var VERSION="1.7 · 261019";
+var VERSION="1.10 · 261019";
 try{ S.nick = localStorage.getItem("g99_nick") || ""; }catch(e){}
 try{ S.fx = localStorage.getItem("g99_fx")!=="0"; }catch(e){}
 try{ var th0=localStorage.getItem("g99_theme"); if(th0==="light"||th0==="dark") S.theme=th0; }catch(e){}
@@ -315,7 +316,7 @@ function face(c){
   if(r==="A") return {top:"±1",bottom:"±11",drop:BLUE};
   if(r==="4") return {top:"방향",bottom:"반대",drop:MINT};
   if(r==="9") return {top:"패스",bottom:"",drop:MINT};
-  if(r==="10") return {top:"+10",bottom:"−10",drop:BLUE};
+  if(r==="10") return {top:"±10",bottom:"",drop:BLUE};
   if(r==="J"||r==="Q") return {top:"+10",bottom:"",drop:BLUE};
   if(r==="K") return {top:"=99",bottom:"",drop:ORANGE};
   return {top:"+"+r,bottom:"",drop:BLUE};
@@ -911,10 +912,21 @@ function rippleFx(x,y,big){
   var r=fxEl("ripple");
   fxAnim(r,[{transform:"translate("+x+"px,"+y+"px) scale(.3)",opacity:.95},{transform:"translate("+x+"px,"+y+"px) scale("+(big?3.6:2.4)+")",opacity:0}],big?700:520,{easing:"ease-out"}).then(r.remove.bind(r));
 }
-/* 풍덩: 카드가 날아가며 물방울만 남아 수면에 빠진다. ±0이면 수면에서 통 튕겨 터진다. 남이 낸 카드는 물방울만 위에서 톡 */
+/* 풍덩: 카드가 날아가며 물방울만 남아 수면에 빠진다. ±0이면 수면에서 통 튕겨 터진다. 남이 낸 카드는 물방울만 위에서 톡
+   패스(9)는 물에 빠지지 않고 비커 입구 테두리에 맞아 오른쪽 밖으로 튕겨 나간다 */
+function bounceOutFx(el,ex,ey,sx,sy2,done){
+  return fxAnim(el,[
+    {transform:"translate("+ex+"px,"+ey+"px) scale("+sx+","+sy2+") rotate(0)",easing:"ease-out"},
+    {transform:"translate("+ex+"px,"+(ey+4)+"px) scale("+(sx*1.35)+","+(sy2*.7)+") rotate(0)",offset:.1,easing:"cubic-bezier(.2,.8,.4,1)"},
+    {transform:"translate("+(ex+70)+"px,"+(ey-80)+"px) scale("+sx+","+sy2+") rotate(140deg)",offset:.45,easing:"cubic-bezier(.5,0,.9,.6)"},
+    {transform:"translate("+(ex+170)+"px,"+(ey+60)+"px) scale("+(sx*.8)+") rotate(300deg)",opacity:0}
+  ],760).then(function(){ el.remove(); done(); });
+}
 async function plungeFx(gh,fx,done){
   var G=beakerGeo(fx.from); if(!G){ if(gh) gh.el.remove(); done(); return; }
   var color=face(fx.card).drop, zero=fx.to===fx.from, big=rank(fx.card)==="K"&&fx.to>fx.from, sy=G.surf, x=G.x;
+  var pass=rank(fx.card)==="9";
+  if(pass){ sy=G.t-9; x=G.l+G.w*.72; }
   if(gh){
     var el=gh.el, r=gh.r, db=el.querySelector(".dropbox"), dr=db?db.getBoundingClientRect():r;
     var cx=r.left+r.width/2, cy=r.top+r.height/2, s=(big?50:38)/(dr.width||r.width), dh=dr.height||r.height;
@@ -926,6 +938,7 @@ async function plungeFx(gh,fx,done){
       {transform:"translate("+ax+"px,"+ay+"px) scale("+(s*1.7)+") rotate(-10deg)",offset:.45,easing:"cubic-bezier(.6,0,.9,.6)"},
       {transform:"translate("+ex+"px,"+ey+"px) scale("+s+","+(s*1.18)+") rotate(0)"}
     ],480);
+    if(pass){ splashFx(x,sy,color,4,.35); await bounceOutFx(el,ex,ey,s,s*1.18,done); return; }
     if(zero){
       rippleFx(x,sy,false);
       await fxAnim(el,[
@@ -942,6 +955,7 @@ async function plungeFx(gh,fx,done){
     d.style.left=(x-w/2)+"px"; d.style.top=top+"px";
     var land=sy-top-h+3;
     await fxAnim(d,[{transform:"translateY(-20px) scale(.3)",opacity:0},{transform:"translateY(0) scale(1)",opacity:1,offset:.25},{transform:"translateY("+land+"px) scale(.9,1.15)"}],440,{easing:"cubic-bezier(.5,0,.9,.5)"});
+    if(pass){ await bounceOutFx(d,0,land,.9,1.15,done); return; }
     if(zero){
       await fxAnim(d,[{transform:"translateY("+land+"px) scale(1.3,.7)"},{transform:"translateY("+(land-26)+"px) scale(.9,1.1)"},{transform:"translateY("+(land-30)+"px) scale(1.6)",opacity:0}],380,{easing:"ease-out"});
       d.remove(); splashFx(x,sy-30,color,6,.5); done(); return;
