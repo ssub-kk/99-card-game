@@ -19,18 +19,21 @@
   --teal:#2fc9a8; --amber:#f2b53a; --orange:#ff7a3d; --vermil:#ff5b3a;
   --drop:#38b6e8; --mint:#6fd8b0; --notice:#9a5b00;
   --warn-ink:#c2361a; --card-back:#cfc6b2; --vermil-hi:#ff8a6e;
+  --glass:rgba(255,255,255,.55); --glass-line:#9fb3bb; --glass-hi:rgba(255,255,255,.7); --rubber:#14202a; --wet-ink:rgba(10,28,36,.74);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#0e1a22; --panel:#162630; --line:#2a3d49; --ink:#f6f1e6; --muted:#9fb3be;
     --tank:#0a141a; --chip:#1d3140; --turn:#2fc9a8;
     --btn:#f6f1e6; --btn-ink:#14202a; --notice:#f2b53a; --warn-ink:#ff8a6e;
+    --glass:rgba(255,255,255,.18); --glass-line:#4f6876; --glass-hi:rgba(255,255,255,.14); --rubber:#3a4f5c;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0e1a22; --panel:#162630; --line:#2a3d49; --ink:#f6f1e6; --muted:#9fb3be;
   --tank:#0a141a; --chip:#1d3140; --turn:#2fc9a8;
   --btn:#f6f1e6; --btn-ink:#14202a; --notice:#f2b53a; --warn-ink:#ff8a6e;
+  --glass:rgba(255,255,255,.18); --glass-line:#4f6876; --glass-hi:rgba(255,255,255,.14); --rubber:#3a4f5c;
 }
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -80,7 +83,9 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
 .fxbtn.mute{color:var(--muted)}
 .top .side{display:flex;align-items:center;gap:6px;flex:none}
 .iconbtn{width:44px;height:44px;flex:none;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
-@media (max-width:400px){ .wrap{padding-left:14px;padding-right:14px} .top .name{font-size:19px;gap:6px} .top .meta{font-size:12px} .top .tag{font-size:11px;padding:2px 8px} }
+@media (max-width:400px){ .wrap{padding-left:14px;padding-right:14px} .top .name{font-size:19px;gap:6px} .top .meta{font-size:12px} .top .tag{font-size:11px;padding:2px 8px}
+  /* 게임 헤더는 소리·낮밤 단추까지 한 줄에: 물방울 로고를 빼고 단추 폭을 줄인다(높이 44 유지) */
+  .top .name>svg:first-child{display:none!important} .top .name .iconbtn{width:36px;margin:0} .top .side{gap:4px} }
 /* 플레이어 (사이 화살표 = 진행 방향) */
 .players{display:flex;gap:2px;align-items:center}
 .pl{flex:1;min-width:0;padding:6px;border-radius:12px;background:var(--panel);border:2px solid transparent;text-align:center}
@@ -93,45 +98,63 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
 @keyframes flip{from{transform:scaleX(-1)}to{transform:none}}
 .banner{text-align:center;font-size:15px;font-weight:700;min-height:22px}
 .banner.me{color:var(--turn)}
-/* 탱크 — 남는 높이를 채우고, 안의 숫자판은 탱크 높이(cqh)에 맞춰 줄어든다 */
-.tank{position:relative;flex:1 1 0;min-height:150px;max-height:330px;container-type:size;border-radius:28px;border:2px solid var(--line);background:var(--tank);overflow:hidden}
+/* 탱크(비커) — 남는 높이를 채운다. 위가 열린 유리컵 + 입구 테두리 + 왼쪽 위 따르는 입 */
+.tank{position:relative;flex:1 1 0;min-height:150px;max-height:330px}
 .wrap.g>*{flex:none}
 .wrap.g>.tank{flex:1 1 0}
+.beaker{position:absolute;left:10px;right:10px;top:12px;bottom:0;container-type:size;border:3px solid var(--glass-line);border-top:0;
+  border-radius:0 0 30px 30px;background:var(--tank);overflow:hidden}
+.rim{position:absolute;left:2px;right:2px;top:6px;height:7px;border-radius:4px;background:var(--glass-line)}
+.spout{position:absolute;left:-2px;top:2px;width:22px;height:7px;border-radius:4px;background:var(--glass-line);transform:rotate(-24deg);transform-origin:100% 50%}
+.shine{position:absolute;left:12px;top:14px;bottom:24px;width:7px;border-radius:4px;background:var(--glass-hi);z-index:2;pointer-events:none}
+.tick{position:absolute;right:0;display:flex;align-items:center;gap:4px;transform:translateY(50%);z-index:2;pointer-events:none;font-size:11px;font-weight:700;color:var(--muted)}
+.tick i{display:block;width:12px;height:2px;border-radius:1px;background:var(--glass-line)}
+.tick.mj i{width:20px}
+.tick span{order:-1}
+.tick.top{transform:translateY(105%)}
 .liquid{position:absolute;left:0;right:0;bottom:0;height:0;background:var(--teal);color:var(--teal);
   transition:height .7s cubic-bezier(.3,.8,.3,1),background .5s,color .5s}
+.water{position:absolute;inset:0;overflow:hidden}
 .wavebox{position:absolute;left:0;right:0;top:-14px;height:16px;overflow:hidden}
 /* 물결은 화면이 바뀔 때 한 번만 출렁인다 (상시 애니메이션 금지) */
 .wave{display:block;width:200%;height:16px;animation:slide 2.4s cubic-bezier(.2,.6,.4,1) 1}
 @keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.bub{position:absolute;border-radius:50%;background:rgba(255,255,255,.28)}
-.tick{position:absolute;right:12px;width:56px;transform:translateY(100%);border-top:1px dashed var(--muted);
-  padding-top:3px;text-align:right;font-size:12px;font-weight:700;line-height:1.2;color:var(--muted)}
-.tick span{background:var(--panel);padding:0 5px;border-radius:6px}
-.lastp{position:absolute;left:12px;top:12px;max-width:calc(100% - 92px);display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;
-  border-radius:12px;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--ink);z-index:1}
+.bub{position:absolute;border-radius:50%;background:rgba(255,255,255,.3)}
+/* 합계 숫자: 물 밖 겹(.dry)과 물 속 겹(.wet)을 같은 자리(비커 바닥 기준)에 두고, 물 속 겹은 물 높이에서 잘린다.
+   숫자는 수면 바로 아래에 떠서 물과 같이 오르내리고, 물이 적으면 바닥에 앉아 반쯤 잠긴다. --f = 물 높이(%) */
+.nb{position:absolute;left:0;right:0;--fs:min(128px,44cqh);--t:translateX(0);height:calc(var(--fs) + 20px);
+  bottom:max(10px,min(calc(var(--f) * 1cqh - var(--fs) - 32px),calc(100cqh - var(--fs) - 84px)));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;transform:var(--t);
+  transition:bottom .7s cubic-bezier(.3,.8,.3,1)}
+.nb small{font-size:12px;font-weight:700;line-height:1.3}
+.nb .num{font-family:"Do Hyeon",sans-serif;font-size:var(--fs);line-height:1;font-variant-numeric:tabular-nums}
+.nb.dry small{color:var(--muted)}
+.nb.dry small.near{color:var(--warn-ink)}
+.nb.wet{color:var(--wet-ink);--t:scaleX(1.05) translateX(1px)}
+.tank.pick .nb{--fs:min(80px,26cqh);bottom:max(96px,min(calc(var(--f) * 1cqh - var(--fs) - 32px),calc(100cqh - var(--fs) - 30px)))}
+.tank.pick .lastp{display:none}
+.lastp{position:absolute;left:24px;top:24px;max-width:calc(100% - 100px);display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;
+  border-radius:12px;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--ink);z-index:3}
 .lastp .mc{width:24px;height:32px;flex:none;border-radius:5px;background:var(--ivory);color:var(--card-ink);border:1px solid var(--card-back);
   display:flex;align-items:center;justify-content:center;font-family:"Do Hyeon",sans-serif;font-size:16px}
 .lastp .tx{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .lastp.new{animation:pop .35s cubic-bezier(.2,.9,.3,1.5)}
 @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
-.plate{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(176px,62cqh);height:min(150px,52cqh);border-radius:22px;z-index:1;
-  background:var(--ivory);color:var(--card-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 6px 0 rgba(0,0,0,.25);transition:top .2s,transform .2s}
-.plate small{font-size:13px;font-weight:700;color:var(--card-sub);line-height:1.2}
-.plate small.near{color:var(--warn-ink)}
-.plate .num{font-family:"Do Hyeon",sans-serif;font-size:min(104px,33cqh);line-height:1}
-.tank.pick .plate{top:30%;transform:translate(-50%,-50%) scale(.72)}
-.tank.pick .lastp{display:none}
-/* 카드를 낸 순간: 숫자판 쾅 + 물결 고리 + 효과 숫자 */
-.plate.hit{animation:hit .42s cubic-bezier(.2,.9,.3,1.3)}
-@keyframes hit{0%{transform:translate(-50%,-50%) scale(1)}22%{transform:translate(-50%,-44%) scale(1.2,.84)}55%{transform:translate(-50%,-52%) scale(.96,1.06)}100%{transform:translate(-50%,-50%) scale(1)}}
+/* 카드를 낸 순간: 숫자가 물결에 출렁 + 비커 흔들림 + 효과 숫자 */
+.nb.hit{animation:bob .45s ease-out}
+@keyframes bob{25%{transform:var(--t) translateY(6px) scale(1.05,.95)}60%{transform:var(--t) translateY(-3px) scale(.98,1.03)}100%{transform:var(--t)}}
 .tank.hit{animation:shake .34s ease-out}
 @keyframes shake{20%{transform:translateY(5px)}45%{transform:translate(-4px,-2px)}70%{transform:translate(3px,1px)}}
-.ring{position:absolute;left:50%;top:50%;width:min(176px,62cqh);height:min(150px,52cqh);border-radius:22px;border:5px solid var(--ivory);
-  transform:translate(-50%,-50%);pointer-events:none;animation:ring .55s ease-out forwards}
-@keyframes ring{from{opacity:.9;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-50%) scale(1.7)}}
-.flt{position:absolute;left:50%;top:22%;z-index:2;transform:translateX(-50%);font-family:"Do Hyeon",sans-serif;font-size:42px;line-height:1;white-space:nowrap;
+.flt{position:absolute;left:50%;top:14%;z-index:4;transform:translateX(-50%);font-family:"Do Hyeon",sans-serif;font-size:42px;line-height:1;white-space:nowrap;
   padding:4px 14px;border-radius:14px;background:var(--btn);color:var(--btn-ink);pointer-events:none;animation:flt .9s ease-out forwards}
 @keyframes flt{0%{opacity:0;transform:translate(-50%,16px) scale(.7)}18%{opacity:1;transform:translate(-50%,0) scale(1.1)}70%{opacity:1;transform:translate(-50%,-8px)}100%{opacity:0;transform:translate(-50%,-24px)}}
+/* 물 효과 조각(화면 위에 띄움): 튀는 물방울·수면 고리·떨어지는 물방울·스포이드 */
+.fxp{position:fixed;left:0;top:0;z-index:50;pointer-events:none;margin:0}
+.fxp.dot{border-radius:50%}
+.fxp.ripple{width:44px;height:10px;margin:-5px 0 0 -22px;border-radius:50%;border:2px solid var(--ivory)}
+.fxp.dropper{width:40px;height:124px;margin-left:-20px}
+.fxp.dropper svg{display:block;width:100%;height:100%;overflow:visible}
+.fxp .bulb,.fxp .fillr{transform-box:fill-box;transform-origin:50% 100%}
 .flycard{position:fixed;z-index:50;pointer-events:none;margin:0}
 .log{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px;min-height:36px}
 .log b{color:var(--ink)}
@@ -207,7 +230,7 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
   background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:14px;max-width:90vw;
   opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;text-align:center}
 #toast.show{opacity:1}
-@media (prefers-reduced-motion: reduce){ .wave,.plate.hit,.tank.hit,.ring,.lastp.new,.players.flip .dirw svg{animation:none} .liquid,.plate{transition:none} }
+@media (prefers-reduced-motion: reduce){ .wave,.nb.hit,.tank.hit,.lastp.new,.players.flip .dirw svg{animation:none} .liquid,.nb{transition:none} }
 /* 태블릿: 기둥을 넓히고 탱크를 더 크게 */
 @media (min-width:600px){ .wrap{max-width:560px} .tank{max-height:440px} .sheet{max-width:560px} }
 /* PC·가로 태블릿: 왼쪽 물탱크, 오른쪽 참여자·손패 */
@@ -219,7 +242,7 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
   .wrap.g>.top{grid-area:top} .wrap.g>.players{grid-area:players} .wrap.g>.banner{grid-area:banner}
   .wrap.g>.tank{grid-area:tank;max-height:none;min-height:0} .wrap.g>.hand{grid-area:hand;align-self:center} .wrap.g>.gfoot{grid-area:foot}
   .banner{font-size:18px}
-  .wrap.g .plate,.wrap.g .ring{width:min(250px,62cqh);height:min(214px,52cqh)} .wrap.g .plate .num{font-size:min(150px,33cqh)}
+  .wrap.g .nb{--fs:min(200px,44cqh)} .wrap.g .tank.pick .nb{--fs:min(110px,26cqh)}
 }
 </style>
 </head>
@@ -240,11 +263,16 @@ var S = {
   pending:null, busy:false, joining:false, rulesOpen:false,
   solo:false, botCount:2, botLevel:"normal", botTimer:null, realUid:null,
   prevFill:0, prevColor:"#2fc9a8",
-  leaveAsk:false, fx:true, fxNext:null, ghost:null, seenPlay:null, seenDir:1
+  leaveAsk:false, fx:true, theme:null, fxNext:null, ghost:null, seenPlay:null, seenDir:1
 };
-var VERSION="1.6 · 261019";
+var VERSION="1.7 · 261019";
 try{ S.nick = localStorage.getItem("g99_nick") || ""; }catch(e){}
 try{ S.fx = localStorage.getItem("g99_fx")!=="0"; }catch(e){}
+try{ var th0=localStorage.getItem("g99_theme"); if(th0==="light"||th0==="dark") S.theme=th0; }catch(e){}
+/* 낮/밤: 고르지 않았으면 기기 설정을 따른다 */
+function isDark(){ if(S.theme) return S.theme==="dark"; try{ return matchMedia("(prefers-color-scheme: dark)").matches; }catch(e){ return false; } }
+function applyTheme(){ var de=document.documentElement; if(!de||!de.setAttribute) return; if(S.theme) de.setAttribute("data-theme",S.theme); else de.removeAttribute("data-theme"); }
+applyTheme();
 try{ var lv0=localStorage.getItem("g99_lv"); if(lv0==="easy"||lv0==="hard") S.botLevel=lv0; }catch(e){}
 
 var SUITS = ["S","H","D","C"];
@@ -726,6 +754,14 @@ function fxBtnHTML(){
     (S.fx?'<path d="M15.5 9 Q18 12 15.5 15 M18 6.5 Q22.5 12 18 17.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>'
          :'<path d="M16 9.5 L21 14.5 M21 9.5 L16 14.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>')+'</svg></button>';
 }
+function themeBtnHTML(){
+  var dark=isDark();
+  return '<button class="iconbtn fxbtn" data-act="theme" aria-label="'+(dark?'낮 화면으로 바꾸기':'밤 화면으로 바꾸기')+'">'+
+    '<svg viewBox="0 0 24 24" style="width:22px;height:22px;display:block" aria-hidden="true">'+
+    (dark?'<path d="M20 14.5 A8 8 0 1 1 9.5 4 A6.5 6.5 0 0 0 20 14.5 Z" fill="currentColor"></path>'
+         :'<circle cx="12" cy="12" r="4.5" fill="currentColor"></circle><path d="M12 2.5 V5 M12 19 V21.5 M2.5 12 H5 M19 12 H21.5 M5.3 5.3 L7 7 M17 17 L18.7 18.7 M5.3 18.7 L7 17 M17 7 L18.7 5.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>')+
+    '</svg></button>';
+}
 function dropSVG(color,w,h){
   return '<svg aria-hidden="true" viewBox="0 0 60 76" style="width:'+w+'px;height:'+h+'px;display:block;flex:none">'+
     '<path d="M30 4 C30 4 6 34 6 50 A24 24 0 0 0 54 50 C54 34 30 4 30 4 Z" fill="'+color+'"></path>'+
@@ -767,7 +803,7 @@ function rulesDetailsHTML(){
 }
 function meTag(g,id){ return id===S.uid&&nickOf(g,id)!=="나"?' (나)':''; }
 
-/* ---------- 타격감 (내가 낸 카드: 날아가는 카드 → 쾅 + 소리 + 진동) ---------- */
+/* ---------- 타격감 (카드를 내면: 더하기·±0은 물방울이 비커에 풍덩, 빼기는 스포이드가 물을 빨아올림 + 소리 + 진동) ---------- */
 var AC=null;
 function fxUnlock(){
   if(!S.fx) return;
@@ -779,27 +815,38 @@ function sfx(kind){
   try{
     fxUnlock();
     var t=AC.currentTime, o=AC.createOscillator(), gn=AC.createGain();
-    /* 쿵: 낮게 떨어지는 사인파 */
-    o.type="sine";
-    o.frequency.setValueAtTime(over?150:big?200:250,t);
-    o.frequency.exponentialRampToValueAtTime(over?38:52,t+(over?.5:.16));
-    gn.gain.setValueAtTime(.0001,t); gn.gain.exponentialRampToValueAtTime(.9,t+.006); gn.gain.exponentialRampToValueAtTime(.0001,t+(over?.6:.24));
-    o.connect(gn); gn.connect(AC.destination); o.start(t); o.stop(t+.7);
-    /* 탁: 아주 짧은 잡음 */
-    var n=Math.floor(AC.sampleRate*.045), buf=AC.createBuffer(1,n,AC.sampleRate), d=buf.getChannelData(0);
-    for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3);
+    if(kind==="suck"||kind==="pop"){
+      /* 쭈욱(빨아올림) / 통(튕김): 짧은 삼각파 */
+      var up=kind==="pop";
+      o.type="triangle";
+      o.frequency.setValueAtTime(up?500:900,t); o.frequency.exponentialRampToValueAtTime(up?900:260,t+(up?.13:.34));
+      gn.gain.setValueAtTime(.0001,t); gn.gain.exponentialRampToValueAtTime(.4,t+.01); gn.gain.exponentialRampToValueAtTime(.0001,t+(up?.16:.42));
+      o.connect(gn); gn.connect(AC.destination); o.start(t); o.stop(t+.5);
+    } else {
+      /* 풍덩: 낮게 떨어지는 사인파 */
+      o.type="sine";
+      o.frequency.setValueAtTime(over?150:big?140:220,t);
+      o.frequency.exponentialRampToValueAtTime(over?38:big?60:90,t+(over?.5:big?.32:.16));
+      gn.gain.setValueAtTime(.0001,t); gn.gain.exponentialRampToValueAtTime(.9,t+.006); gn.gain.exponentialRampToValueAtTime(.0001,t+(over?.6:big?.4:.22));
+      o.connect(gn); gn.connect(AC.destination); o.start(t); o.stop(t+.7);
+    }
+    /* 물 튀는 소리: 아주 짧은 잡음 */
+    var n=Math.floor(AC.sampleRate*(big||over?.25:.12)), buf=AC.createBuffer(1,n,AC.sampleRate), d=buf.getChannelData(0);
+    for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
     var src=AC.createBufferSource(), f=AC.createBiquadFilter(), ng=AC.createGain();
-    f.type="lowpass"; f.frequency.value=big?3200:2200; ng.gain.value=.55; src.buffer=buf;
+    f.type="bandpass"; f.frequency.value=kind==="suck"?600:kind==="pop"?2500:big?900:1400; ng.gain.value=kind==="pop"?.3:.5; src.buffer=buf;
     src.connect(f); f.connect(ng); ng.connect(AC.destination); src.start(t);
   }catch(e){}
   try{ if(navigator.vibrate) navigator.vibrate(over?[40,60,110]:big?50:30); }catch(e){}
 }
-/* 카드를 누른 순간: 그 카드 모양을 화면 위에 띄워 두고, 다시 그린 뒤 물탱크로 날린다 */
+function reducedMotion(){ try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } }
+/* 카드를 누른 순간: 그 카드 모양을 화면 위에 띄워 두고, 다시 그린 뒤 비커로 날린다 */
 function fxPrepare(btn,card,opt){
   fxUnlock();
-  S.fxNext={card:card,label:opt.label,kind:opt.over?"over":(rank(card)==="K"||opt.total>=90)?"big":"hit"};
-  var reduce=false; try{ reduce=matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
-  if(!btn||reduce||!btn.animate) return;
+  var from=S.game?S.game.total:0;
+  S.fxNext={card:card,label:opt.label,from:from,to:opt.total,
+    kind:opt.over?"over":opt.total<from?"suck":opt.total===from?"pop":(rank(card)==="K"||opt.total>=90)?"big":"hit"};
+  if(!btn||reducedMotion()||!btn.animate) return;
   var r=btn.getBoundingClientRect(), gh=btn.cloneNode(true);
   gh.className=btn.className.replace(/\b(sel|off)\b/g,"")+" flycard"; gh.removeAttribute("data-act");
   gh.style.cssText="left:"+r.left+"px;top:"+r.top+"px;width:"+r.width+"px;height:"+r.height+"px";
@@ -807,57 +854,177 @@ function fxPrepare(btn,card,opt){
   /* 내기가 거절돼 다시 그리지 않으면 띄운 카드를 치운다 */
   setTimeout(function(){ if(S.ghost&&S.ghost.el===gh){ gh.remove(); S.ghost=null; S.fxNext=null; } },900);
 }
+/* 효과 조각 도우미 */
+function fxAnim(el,kf,ms,opt){
+  opt=opt||{}; opt.duration=ms; opt.fill=opt.fill||"forwards";
+  return new Promise(function(res){
+    try{ var an=el.animate(kf,opt); an.onfinish=res; }catch(e){ res(); return; }
+    setTimeout(res,ms+80);
+  });
+}
+function fxEl(cls,html){ var e=document.createElement("div"); e.className="fxp "+cls; if(html) e.innerHTML=html; document.body.appendChild(e); return e; }
+function beakerGeo(total){
+  var b=document.querySelector(".beaker"); if(!b) return null;
+  var r=b.getBoundingClientRect(), fill=Math.min(1,Math.max(0,total)/99);
+  return {l:r.left,t:r.top,w:r.width,h:r.height,x:r.left+r.width*.2,surf:r.top+(r.height-3)*(1-fill)};
+}
+function smallDrop(color,w){
+  return '<svg aria-hidden="true" viewBox="0 0 60 76" style="display:block;width:'+w+'px;height:'+(w*1.267)+'px"><path d="M30 2 C30 2 4 33 4 50 A26 26 0 0 0 56 50 C56 33 30 2 30 2 Z" fill="'+color+'"></path></svg>';
+}
+function splashFx(x,y,color,n,power){
+  for(var i=0;i<n;i++){
+    var sz=4+Math.random()*5, d=fxEl("dot");
+    d.style.width=d.style.height=sz+"px"; d.style.background=color;
+    var vx=(Math.random()*2-1)*(26+power*14), vy=-(22+Math.random()*24)*power;
+    fxAnim(d,[
+      {transform:"translate("+(x-sz/2)+"px,"+(y-sz/2)+"px)"},
+      {transform:"translate("+(x+vx*.55-sz/2)+"px,"+(y+vy-sz/2)+"px)",offset:.45,easing:"cubic-bezier(.4,0,1,1)"},
+      {transform:"translate("+(x+vx-sz/2)+"px,"+(y+8-sz/2)+"px) scale(.6)",opacity:0}
+    ],520,{easing:"cubic-bezier(0,0,.6,1)"}).then(d.remove.bind(d));
+  }
+}
+function rippleFx(x,y,big){
+  var r=fxEl("ripple");
+  fxAnim(r,[{transform:"translate("+x+"px,"+y+"px) scale(.3)",opacity:.95},{transform:"translate("+x+"px,"+y+"px) scale("+(big?3.6:2.4)+")",opacity:0}],big?700:520,{easing:"ease-out"}).then(r.remove.bind(r));
+}
+/* 풍덩: 카드가 날아가며 물방울만 남아 수면에 빠진다. ±0이면 수면에서 통 튕겨 터진다. 남이 낸 카드는 물방울만 위에서 톡 */
+async function plungeFx(gh,fx,done){
+  var G=beakerGeo(fx.from); if(!G){ if(gh) gh.el.remove(); done(); return; }
+  var color=face(fx.card).drop, zero=fx.to===fx.from, big=rank(fx.card)==="K"&&fx.to>fx.from, sy=G.surf, x=G.x;
+  if(gh){
+    var el=gh.el, r=gh.r, db=el.querySelector(".dropbox"), dr=db?db.getBoundingClientRect():r;
+    var cx=r.left+r.width/2, cy=r.top+r.height/2, s=(big?50:38)/(dr.width||r.width), dh=dr.height||r.height;
+    var ex=x-cx, ey=sy-dh*s/2+4-cy, ax=ex*.45, ay=Math.min(0,ey)-70, hint=el.querySelector(".hint");
+    fxAnim(el,[{backgroundColor:getComputedStyle(el).backgroundColor},{backgroundColor:"rgba(0,0,0,0)",offset:.4},{backgroundColor:"rgba(0,0,0,0)"}],480);
+    if(hint) fxAnim(hint,[{opacity:1},{opacity:1,offset:.5},{opacity:0}],480);
+    await fxAnim(el,[
+      {transform:"translate(0,0) scale(1) rotate(0)",easing:"cubic-bezier(.2,.7,.4,1)"},
+      {transform:"translate("+ax+"px,"+ay+"px) scale("+(s*1.7)+") rotate(-10deg)",offset:.45,easing:"cubic-bezier(.6,0,.9,.6)"},
+      {transform:"translate("+ex+"px,"+ey+"px) scale("+s+","+(s*1.18)+") rotate(0)"}
+    ],480);
+    if(zero){
+      rippleFx(x,sy,false);
+      await fxAnim(el,[
+        {transform:"translate("+ex+"px,"+ey+"px) scale("+s+","+(s*1.18)+")"},
+        {transform:"translate("+ex+"px,"+(ey+5)+"px) scale("+(s*1.4)+","+(s*.7)+")",offset:.18},
+        {transform:"translate("+(ex+8)+"px,"+(ey-46)+"px) scale("+(s*.95)+","+(s*1.08)+")",offset:.7,easing:"ease-in"},
+        {transform:"translate("+(ex+10)+"px,"+(ey-50)+"px) scale("+(s*1.5)+")",opacity:0}
+      ],520,{easing:"cubic-bezier(.2,.8,.4,1)"});
+      el.remove(); splashFx(x+10,sy-46,color,7,.6); done(); return;
+    }
+    el.remove();
+  } else {
+    var w=big?30:22, h=w*1.267, top=G.t-30, d=fxEl("",smallDrop(color,w));
+    d.style.left=(x-w/2)+"px"; d.style.top=top+"px";
+    var land=sy-top-h+3;
+    await fxAnim(d,[{transform:"translateY(-20px) scale(.3)",opacity:0},{transform:"translateY(0) scale(1)",opacity:1,offset:.25},{transform:"translateY("+land+"px) scale(.9,1.15)"}],440,{easing:"cubic-bezier(.5,0,.9,.5)"});
+    if(zero){
+      await fxAnim(d,[{transform:"translateY("+land+"px) scale(1.3,.7)"},{transform:"translateY("+(land-26)+"px) scale(.9,1.1)"},{transform:"translateY("+(land-30)+"px) scale(1.6)",opacity:0}],380,{easing:"ease-out"});
+      d.remove(); splashFx(x,sy-30,color,6,.5); done(); return;
+    }
+    d.remove();
+  }
+  rippleFx(x,sy,big);
+  splashFx(x,sy,color,big?12:Math.min(9,4+Math.round(Math.abs(fx.to-fx.from)/2)),big?1.6:gh?1.1:.7);
+  done();
+}
+/* 스포이드: (카드가 스포이드로 빨려 들어가고) 스포이드가 물에 담가 빨아올린다 */
+var dropperN=0;
+function dropperSVG(id,color){
+  return '<svg viewBox="0 0 40 124" aria-hidden="true"><defs><clipPath id="tube'+id+'"><path d="M13.5 46 H26.5 V102 L22 118 H18 L13.5 102 Z"></path></clipPath></defs>'+
+    '<g class="bulb"><rect x="8" y="2" width="24" height="40" rx="12" fill="var(--rubber)"></rect><rect x="13" y="8" width="4" height="18" rx="2" fill="#ffffff" opacity=".22"></rect></g>'+
+    '<rect x="6" y="38" width="28" height="9" rx="3" fill="var(--rubber)"></rect>'+
+    '<g clip-path="url(#tube'+id+')"><rect class="fillr" x="12" y="50" width="16" height="70" fill="'+color+'" style="transform:scaleY(0)"></rect></g>'+
+    '<path d="M13.5 46 H26.5 V102 L22 118 H18 L13.5 102 Z" fill="var(--glass)" stroke="var(--glass-line)" stroke-width="1.5" stroke-linejoin="round"></path>'+
+    '<rect x="16" y="52" width="2.5" height="44" rx="1.2" fill="#ffffff" opacity=".45"></rect></svg>';
+}
+async function siphonFx(gh,fx,done){
+  var G=beakerGeo(fx.from); if(!G){ if(gh) gh.el.remove(); done(); return; }
+  var x=G.x, sy=G.surf, H=124, start=-H-20;
+  var hover=Math.min(sy,G.t+G.h-30)-H-30, dip=Math.min(sy+16,G.t+G.h-12)-H;
+  var dp=fxEl("dropper",dropperSVG(++dropperN,liquidColor(fx.from)));
+  var pos=function(y){ return "translate("+x+"px,"+y+"px)"; };
+  dp.style.transform=pos(start);
+  var bulb=dp.querySelector(".bulb"), fill=dp.querySelector(".fillr");
+  var enter=fxAnim(dp,[{transform:pos(start)},{transform:pos(hover)}],320,{easing:"cubic-bezier(.2,.8,.3,1.1)"});
+  if(gh){
+    var el=gh.el, r=gh.r, cx=r.left+r.width/2, cy=r.top+r.height/2, by=hover+22, hint=el.querySelector(".hint");
+    if(hint) fxAnim(hint,[{opacity:1},{opacity:0}],200);
+    await fxAnim(el,[
+      {transform:"translate(0,0) scale(1)",opacity:1},
+      {transform:"translate("+((x-cx)*.5)+"px,"+((by-cy)*.5-20)+"px) scale(.55) rotate(-8deg)",opacity:1,offset:.5},
+      {transform:"translate("+(x-cx)+"px,"+(by-cy)+"px) scale(.08,.2)",opacity:.3}
+    ],340,{easing:"cubic-bezier(.5,0,.7,.4)"});
+    el.remove();
+  }
+  await enter;
+  /* 꾹 누른 채 물에 담그고 → 놓으면서 빨아올림 */
+  await fxAnim(bulb,[{transform:"scale(1)"},{transform:"scale(1.1,.72)"}],140,{easing:"ease-out"});
+  await fxAnim(dp,[{transform:pos(hover)},{transform:pos(dip)}],200,{easing:"ease-in"});
+  rippleFx(x,sy,false);
+  done();
+  fxAnim(bulb,[{transform:"scale(1.1,.72)"},{transform:"scale(.96,1.05)",offset:.7},{transform:"scale(1)"}],460,{easing:"ease-out"});
+  await fxAnim(fill,[{transform:"scaleY(0)"},{transform:"scaleY("+Math.min(1,.25+Math.abs(fx.to-fx.from)/14)+")"}],460,{easing:"ease-out"});
+  await fxAnim(dp,[{transform:pos(dip)},{transform:pos(start)}],320,{easing:"cubic-bezier(.5,0,.8,.4)"});
+  dp.remove();
+}
+function setNums(v){ document.querySelectorAll(".nb .num").forEach(function(n){ n.textContent=v; }); }
+function countNums(from,to){
+  var t0=Date.now(), dur=from===to?0:350;
+  (function step(){
+    var k=dur?Math.min(1,(Date.now()-t0)/dur):1;
+    setNums(Math.round(from+(to-from)*k));
+    if(k<1) requestAnimationFrame(step);
+  })();
+}
 function landFx(fx,mine,nick){
-  var tk=document.querySelector(".tank"), pl=document.querySelector(".plate");
+  var tk=document.querySelector(".tank");
   if(mine) sfx(fx.kind);
-  if(!tk||!pl) return;
-  var num=pl.querySelector(".num"); if(num&&fx.total!=null) num.textContent=fx.total;
-  pl.classList.remove("hit"); void pl.offsetWidth; pl.classList.add("hit");
+  if(!tk) return;
+  document.querySelectorAll(".nb").forEach(function(n){ n.classList.remove("hit"); void n.offsetWidth; n.classList.add("hit"); });
   var ft=document.createElement("span"); ft.className="flt"; ft.textContent=(nick?nick+" ":"")+fx.label;
   if(!mine) ft.style.fontSize="26px";
   tk.appendChild(ft);
-  if(mine){
-    tk.classList.remove("hit"); void tk.offsetWidth; tk.classList.add("hit");
-    var ring=document.createElement("span"); ring.className="ring"; tk.appendChild(ring);
-  }
-  setTimeout(function(){ if(ft.parentNode) ft.remove(); if(ring&&ring.parentNode) ring.remove(); },950);
+  if(mine){ tk.classList.remove("hit"); void tk.offsetWidth; tk.classList.add("hit"); }
+  setTimeout(function(){ if(ft.parentNode) ft.remove(); },950);
 }
-/* render() 끝에서 부른다: 내가 낸 카드면 날려서 쾅, 남이 낸 카드면 가볍게 톡 */
-function runFx(g){
-  if(!document.querySelector) return;
+/* render() 끝에서 부른다. 물이 오르내리는 것(rise)을 효과가 수면에 닿을 때까지 미루면 true */
+function runFx(g,rise){
+  if(!document.querySelector) return false;
   var key=g&&g.status!=="lobby"&&g.lastCard?[g.round,g.lastBy,g.lastCard,g.prevTotal,g.total].join("|"):null;
   var fresh=key&&key!==S.seenPlay; S.seenPlay=key;
   var pls=document.querySelector(".players");
   if(g&&g.dir!==S.seenDir){ S.seenDir=g.dir; if(pls&&g.status==="playing") pls.classList.add("flip"); }
   var lp=document.querySelector(".lastp"); if(fresh&&lp) lp.classList.add("new");
-  var fx=S.fxNext, gh=S.ghost; S.fxNext=null; S.ghost=null;
+  var fx=S.fxNext, gh=S.ghost, held=false, fx2=null, nick=null; S.fxNext=null; S.ghost=null;
   if(fx){
-    /* 상태가 이미 바뀐 경우(혼자 하기·방장)엔 부딪힐 때 숫자가 바뀌도록 잠깐 이전 합계를 보여 준다 */
+    /* 상태가 이미 바뀐 경우(혼자 하기·방장)엔 수면에 닿을 때 물과 숫자가 바뀐다 */
     var applied=g&&g.lastBy===S.uid&&g.lastCard===fx.card;
-    var num=document.querySelector(".plate .num");
-    if(applied&&num&&gh){ fx.total=g.total; num.textContent=g.prevTotal; }
-    var pl=document.querySelector(".plate");
-    if(!gh||!pl){ if(gh) gh.el.remove(); landFx(fx,true); return; }
-    var pr=pl.getBoundingClientRect(), r=gh.r;
-    var dx=pr.left+pr.width/2-(r.left+r.width/2), dy=pr.top+pr.height/2-(r.top+r.height/2);
-    var done=false, fin=function(){ if(done) return; done=true; gh.el.remove(); landFx(fx,true); };
-    try{
-      var an=gh.el.animate([
-        {transform:"translate(0,0) rotate(0deg) scale(1)"},
-        {transform:"translate("+(dx*.45)+"px,"+(dy*.45-36)+"px) rotate(-10deg) scale(.92)",offset:.5},
-        {transform:"translate("+dx+"px,"+dy+"px) rotate(6deg) scale(.5)",opacity:.85}
-      ],{duration:250,easing:"cubic-bezier(.55,0,.85,.55)",fill:"forwards"});
-      an.onfinish=fin;
-    }catch(e){ fin(); }
-    setTimeout(fin,600);
-    return;
+    if(!gh){ landFx(fx,true); return false; }
+    held=applied; fx2=fx;
+  } else if(fresh&&g.lastBy!==S.uid&&g.status==="playing"){
+    fx2={card:g.lastCard,label:g.lastLabel||face(g.lastCard).top,from:g.prevTotal,to:g.total,kind:"hit"};
+    nick=nickOf(g,g.lastBy);
+    if(reducedMotion()){ landFx(fx2,false,nick); return false; }
+    held=true;
   }
-  if(fresh&&g.lastBy!==S.uid&&g.status==="playing") landFx({label:g.lastLabel||face(g.lastCard).top},false,nickOf(g,g.lastBy));
+  if(!fx2) return false;
+  if(held) setNums(g.prevTotal);
+  /* 효과 도중에 화면을 다시 그렸으면 새 화면은 이미 새 합계라서 건드리지 않는다 */
+  var bk0=document.getElementById("beaker");
+  var fired=false, done=function(){
+    if(fired) return; fired=true;
+    if(held&&document.getElementById("beaker")===bk0){ if(rise) rise(); countNums(g.prevTotal,g.total); }
+    landFx(fx2,!!gh,nick);
+  };
+  (fx2.to<fx2.from?siphonFx:plungeFx)(gh,fx2,done);
+  if(held) setTimeout(done,1500);
+  return held;
 }
 
 /* ---------- 화면 ---------- */
 function homeHTML(){
-  var h='<div class="top" style="justify-content:flex-start"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1>'+fxBtnHTML()+'</div>'+
+  var h='<div class="top" style="justify-content:flex-start"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1>'+fxBtnHTML()+themeBtnHTML()+'</div>'+
     '<p class="sub">방 번호를 정하고, 친구에게 알려주면 같이 할 수 있어요.</p>';
   if(!S.ready){ return h+'<div class="panel sub">연결 중…</div>'; }
   h+='<div class="home2"><div class="panel">'+
@@ -886,7 +1053,7 @@ function lobbyHTML(){
   var ids=S.players.map(function(p){return p.id;});
   var hostId=S.hostId, hostPresent=ids.indexOf(hostId)>=0, isHost=S.isHostNet;
   var ready=S.players.filter(function(p){ return p.on; }).length;
-  var h='<div class="top" style="justify-content:flex-start"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1>'+fxBtnHTML()+'</div>'+
+  var h='<div class="top" style="justify-content:flex-start"><h1 class="disp" style="display:flex;align-items:center;gap:10px">'+dropSVG(BLUE,30,38)+'99 카드게임</h1>'+fxBtnHTML()+themeBtnHTML()+'</div>'+
     '<div class="panel" style="text-align:center"><div class="sub">방 번호</div>'+
     '<div class="roomcode">'+esc(S.code)+'</div>'+
     '<div class="row" style="justify-content:center;margin-top:8px"><button class="btn ghost sm" data-act="copy">초대 링크 복사</button></div>'+
@@ -907,14 +1074,20 @@ function lobbyHTML(){
 function tankHTML(total,inner,pick){
   var left=Math.max(0,99-total);
   var fill=Math.min(100,total/99*100), color=liquidColor(total);
-  var h='<div class="tank'+(pick?' pick':'')+'"><div class="liquid" id="liquid" data-fill="'+fill+'" data-color="'+color+'" style="height:'+S.prevFill+'%;background:'+S.prevColor+';color:'+S.prevColor+'">'+
+  var nb=function(cls){
+    return '<div class="nb '+cls+'"'+(cls==="wet"?' aria-hidden="true"':'')+'><span class="num">'+total+'</span>'+
+      (total<=99?'<small'+(left<=10?' class="near"':'')+'>99까지 '+left+'</small>':'<small>/ 99</small>')+'</div>';
+  };
+  var h='<div class="tank'+(pick?' pick':'')+'"><div class="rim"></div><div class="spout"></div>'+
+    '<div class="beaker" id="beaker" style="--f:'+S.prevFill+'">'+nb("dry")+
+    '<div class="liquid" id="liquid" data-fill="'+fill+'" data-color="'+color+'" style="height:'+S.prevFill+'%;background:'+S.prevColor+';color:'+S.prevColor+'">'+
     '<div class="wavebox"><svg class="wave" aria-hidden="true" viewBox="0 0 800 16" preserveAspectRatio="none"><path d="'+WAVE+'" fill="currentColor"></path></svg></div>'+
-    '<span class="bub" style="left:36px;bottom:18px;width:14px;height:14px"></span>'+
-    '<span class="bub" style="left:62px;bottom:44px;width:8px;height:8px"></span>'+
-    '<span class="bub" style="left:112px;bottom:12px;width:10px;height:10px"></span></div>';
-  [99,75,50,25].forEach(function(v){ h+='<div class="tick" style="bottom:'+(v/99*100)+'%"><span>'+v+'</span></div>'; });
-  h+='<div class="plate"><small>합계</small><span class="num">'+total+'</span>'+
-    (total<=99?'<small'+(left<=10?' class="near"':'')+'>99까지 '+left+'</small>':'<small>/ 99</small>')+'</div>'+(inner||'')+'</div>';
+    '<div class="water"><span class="bub" style="left:30px;bottom:16px;width:13px;height:13px"></span>'+
+    '<span class="bub" style="left:54px;bottom:40px;width:8px;height:8px"></span>'+
+    '<span class="bub" style="right:48px;bottom:14px;width:10px;height:10px"></span>'+nb("wet")+'</div></div>';
+  for(var v=10;v<=90;v+=10){ if(v!==50) h+='<div class="tick" style="bottom:'+(v/99*100)+'%"><i></i></div>'; }
+  [25,50,75,99].forEach(function(v){ h+='<div class="tick mj'+(v===99?' top':'')+'" style="bottom:'+(v/99*100)+'%"><span>'+v+'</span><i></i></div>'; });
+  h+='<div class="shine"></div></div>'+(inner||'')+'</div>';
   return h;
 }
 function lastPlayHTML(g){
@@ -985,7 +1158,7 @@ function gameHTML(){
   var playing=g.status==="playing", myTurn=playing&&g.turn===me;
   var inGame=g.order.indexOf(me)>=0;
   var away=awayMs(g);
-  var h='<div class="top"><div class="name disp">'+dropSVG(BLUE,22,28)+'99 카드게임'+fxBtnHTML()+'<span class="tag" style="font-family:\'Noto Sans KR\',sans-serif">'+(S.solo?'봇 '+BOT_LEVELS.filter(function(l){ return l[0]===S.botLevel; })[0][1]:'방 '+esc(S.code))+'</span></div>'+
+  var h='<div class="top"><div class="name disp">'+dropSVG(BLUE,22,28)+'99 카드게임'+fxBtnHTML()+themeBtnHTML()+'<span class="tag" style="font-family:\'Noto Sans KR\',sans-serif">'+(S.solo?'봇 '+BOT_LEVELS.filter(function(l){ return l[0]===S.botLevel; })[0][1]:'방 '+esc(S.code))+'</span></div>'+
     '<span class="side"><span class="meta">덱 '+g.deck.length+'장</span>'+
     '<button class="iconbtn" data-act="leave" aria-label="'+(S.solo?'그만하기':'방에서 나가기')+'"><svg viewBox="0 0 20 20" style="width:18px;height:18px" aria-hidden="true"><path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path></svg></button></span></div>';
   /* 참여자 사이 화살표 = 진행 방향 (4를 내면 뒤집힘) */
@@ -1033,17 +1206,17 @@ function render(){
     var el=document.getElementById(focusId);
     if(el){ el.focus(); if(ss!==null){ try{ el.setSelectionRange(ss,se); }catch(e){} } }
   }
-  var lq=document.getElementById("liquid");
+  var lq=document.getElementById("liquid"), rise=null;
   if(lq){
-    var f=lq.getAttribute("data-fill"), c=lq.getAttribute("data-color");
+    var f=lq.getAttribute("data-fill"), c=lq.getAttribute("data-color"), bk=document.getElementById("beaker");
     void lq.offsetWidth;
-    /* 내 카드가 날아가는 동안엔 기다렸다가 부딪힐 때 물이 오른다 */
-    var rise=function(){ lq.style.height=f+"%"; lq.style.background=c; lq.style.color=c; };
-    if(S.fxNext&&S.ghost) setTimeout(rise,250); else requestAnimationFrame(rise);
+    /* 물(과 물속 숫자)이 새 높이로. 카드 효과가 있으면 수면에 닿을 때까지 기다린다(runFx) */
+    rise=function(){ lq.style.height=f+"%"; lq.style.background=c; lq.style.color=c; if(bk&&bk.style&&bk.style.setProperty) bk.style.setProperty("--f",f); };
     S.prevFill=+f; S.prevColor=c;
   }
-  if(inGame) runFx(S.game);
-  else if(S.ghost){ S.ghost.el.remove(); S.ghost=null; S.fxNext=null; }
+  var held=inGame&&runFx(S.game,rise);
+  if(rise&&!held) requestAnimationFrame(rise);
+  if(!inGame&&S.ghost){ S.ghost.el.remove(); S.ghost=null; S.fxNext=null; }
 }
 
 /* ---------- 이벤트 ---------- */
@@ -1066,6 +1239,7 @@ document.addEventListener("click",function(e){
   else if(a==="leave"){ if(S.game&&S.game.status==="playing"){ S.leaveAsk=true; render(); } else leaveRoom(); }
   else if(a==="leaveyes") leaveRoom();
   else if(a==="leaveno"){ S.leaveAsk=false; render(); }
+  else if(a==="theme"){ S.theme=isDark()?"light":"dark"; try{ localStorage.setItem("g99_theme",S.theme); }catch(err){} applyTheme(); render(); }
   else if(a==="fx"){ S.fx=!S.fx; try{ localStorage.setItem("g99_fx",S.fx?"1":"0"); }catch(err){} if(S.fx) sfx("hit"); render(); }
   else if(a==="start") startGame();
   else if(a==="skip") skipTurn();
