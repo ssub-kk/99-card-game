@@ -155,7 +155,7 @@ details summary{cursor:pointer;font-weight:700;font-size:14px;padding:12px 0}
 .fxp.dropper{width:40px;height:124px;margin-left:-20px}
 .fxp.dropper svg{display:block;width:100%;height:100%;overflow:visible}
 .fxp .bulb,.fxp .fillr{transform-box:fill-box;transform-origin:50% 100%}
-.flycard{position:fixed;z-index:50;pointer-events:none;margin:0}
+.card.flycard{position:fixed;z-index:50;pointer-events:none;margin:0}
 .log{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px;min-height:36px}
 .log b{color:var(--ink)}
 /* 손패 */
@@ -809,43 +809,67 @@ function fxUnlock(){
   if(!S.fx) return;
   try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==="suspended") AC.resume(); }catch(e){}
 }
-function sfx(kind){
+/* 효과 종류: over(99 넘김) / suck(빼기 → 스포이드) / pop(±0 → 튕김) / big(K·90 이상) / hit(더하기) */
+function fxKind(card,from,to){ return to>99?"over":to<from?"suck":to===from?"pop":(rank(card)==="K"||to>=90)?"big":"hit"; }
+var NOISE=null;
+function noiseBuf(){
+  if(!NOISE){ var n=AC.sampleRate|0, b=AC.createBuffer(1,n,AC.sampleRate), d=b.getChannelData(0); for(var i=0;i<n;i++) d[i]=Math.random()*2-1; NOISE=b; }
+  return NOISE;
+}
+/* 공기방울 하나: 물속에서 울리며 음이 위로 휘는 '퐁' (물방울 소리의 핵심) */
+function bubble(out,t,f,len,vol){
+  var o=AC.createOscillator(), g=AC.createGain();
+  o.type="sine"; o.frequency.setValueAtTime(f,t); o.frequency.exponentialRampToValueAtTime(f*2.6,t+len);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.004); g.gain.exponentialRampToValueAtTime(.0001,t+len);
+  o.connect(g); g.connect(out); o.start(t); o.stop(t+len+.02);
+}
+/* 거른 잡음: 찰박·쪼르륵 같은 물결 소리. f2를 주면 그 높이까지 훑는다 */
+function swish(out,t,len,type,f,q,vol,f2){
+  var s=AC.createBufferSource(), fl=AC.createBiquadFilter(), g=AC.createGain();
+  s.buffer=noiseBuf(); fl.type=type; fl.Q.value=q;
+  fl.frequency.setValueAtTime(f,t); if(f2) fl.frequency.exponentialRampToValueAtTime(f2,t+len);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+len);
+  s.connect(fl); fl.connect(g); g.connect(out); s.start(t,Math.random()*.4,len+.02);
+}
+/* soft: 남이 낸 카드는 작게, 진동 없이 */
+function sfx(kind,soft){
   if(!S.fx) return;
-  var over=kind==="over", big=kind==="big";
+  var over=kind==="over", big=kind==="big"||over;
   try{
     fxUnlock();
-    var t=AC.currentTime, o=AC.createOscillator(), gn=AC.createGain();
-    if(kind==="suck"||kind==="pop"){
-      /* 쭈욱(빨아올림) / 통(튕김): 짧은 삼각파 */
-      var up=kind==="pop";
-      o.type="triangle";
-      o.frequency.setValueAtTime(up?500:900,t); o.frequency.exponentialRampToValueAtTime(up?900:260,t+(up?.13:.34));
-      gn.gain.setValueAtTime(.0001,t); gn.gain.exponentialRampToValueAtTime(.4,t+.01); gn.gain.exponentialRampToValueAtTime(.0001,t+(up?.16:.42));
-      o.connect(gn); gn.connect(AC.destination); o.start(t); o.stop(t+.5);
+    var t=AC.currentTime+.01, out=AC.createGain(), i;
+    out.gain.value=soft?.4:1; out.connect(AC.destination);
+    if(kind==="suck"){
+      /* 스포이드: 고무를 꾹 → 액체가 대롱으로 쪼르륵 빨려 올라감(점점 높아지는 물소리 + 꼴깍 거품) → 마지막 츕 */
+      swish(out,t,.07,"lowpass",420,1,.4);
+      swish(out,t+.08,.42,"bandpass",320,5,.55,1500);
+      for(i=0;i<6;i++) bubble(out,t+.1+i*.06+Math.random()*.02,420+i*110+Math.random()*80,.045,.3);
+      swish(out,t+.46,.08,"bandpass",1900,3,.3);
+    } else if(kind==="pop"){
+      /* ±0: 수면에 톡 튕기는 가벼운 물방울 */
+      swish(out,t,.03,"highpass",3000,.7,.18);
+      bubble(out,t+.004,880,.05,.45);
     } else {
-      /* 풍덩: 낮게 떨어지는 사인파 */
-      o.type="sine";
-      o.frequency.setValueAtTime(over?150:big?140:220,t);
-      o.frequency.exponentialRampToValueAtTime(over?38:big?60:90,t+(over?.5:big?.32:.16));
-      gn.gain.setValueAtTime(.0001,t); gn.gain.exponentialRampToValueAtTime(.9,t+.006); gn.gain.exponentialRampToValueAtTime(.0001,t+(over?.6:big?.4:.22));
-      o.connect(gn); gn.connect(AC.destination); o.start(t); o.stop(t+.7);
+      /* 풍덩: 수면에 부딪히는 찰박 → 물속 공기방울 퐁 → 잔물방울 똑똑 */
+      swish(out,t,big?.32:.09,"bandpass",big?900:2200,big?.8:1.2,big?.6:.32);
+      bubble(out,t+.006,big?170:330+Math.random()*60,big?.24:.11,.85);
+      for(i=0;i<(big?5:2);i++) bubble(out,t+.08+Math.random()*(big?.35:.12),700+Math.random()*700,.03+Math.random()*.03,.2);
+      if(over){
+        var o=AC.createOscillator(), g=AC.createGain();
+        o.type="sine"; o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(36,t+.55);
+        g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.8,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+.65);
+        o.connect(g); g.connect(out); o.start(t); o.stop(t+.7);
+      }
     }
-    /* 물 튀는 소리: 아주 짧은 잡음 */
-    var n=Math.floor(AC.sampleRate*(big||over?.25:.12)), buf=AC.createBuffer(1,n,AC.sampleRate), d=buf.getChannelData(0);
-    for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
-    var src=AC.createBufferSource(), f=AC.createBiquadFilter(), ng=AC.createGain();
-    f.type="bandpass"; f.frequency.value=kind==="suck"?600:kind==="pop"?2500:big?900:1400; ng.gain.value=kind==="pop"?.3:.5; src.buffer=buf;
-    src.connect(f); f.connect(ng); ng.connect(AC.destination); src.start(t);
   }catch(e){}
-  try{ if(navigator.vibrate) navigator.vibrate(over?[40,60,110]:big?50:30); }catch(e){}
+  if(!soft) try{ if(navigator.vibrate) navigator.vibrate(over?[40,60,110]:big?50:30); }catch(e){}
 }
 function reducedMotion(){ try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } }
 /* 카드를 누른 순간: 그 카드 모양을 화면 위에 띄워 두고, 다시 그린 뒤 비커로 날린다 */
 function fxPrepare(btn,card,opt){
   fxUnlock();
   var from=S.game?S.game.total:0;
-  S.fxNext={card:card,label:opt.label,from:from,to:opt.total,
-    kind:opt.over?"over":opt.total<from?"suck":opt.total===from?"pop":(rank(card)==="K"||opt.total>=90)?"big":"hit"};
+  S.fxNext={card:card,label:opt.label,from:from,to:opt.total,kind:fxKind(card,from,opt.total)};
   if(!btn||reducedMotion()||!btn.animate) return;
   var r=btn.getBoundingClientRect(), gh=btn.cloneNode(true);
   gh.className=btn.className.replace(/\b(sel|off)\b/g,"")+" flycard"; gh.removeAttribute("data-act");
@@ -979,7 +1003,7 @@ function countNums(from,to){
 }
 function landFx(fx,mine,nick){
   var tk=document.querySelector(".tank");
-  if(mine) sfx(fx.kind);
+  sfx(fx.kind,!mine);
   if(!tk) return;
   document.querySelectorAll(".nb").forEach(function(n){ n.classList.remove("hit"); void n.offsetWidth; n.classList.add("hit"); });
   var ft=document.createElement("span"); ft.className="flt"; ft.textContent=(nick?nick+" ":"")+fx.label;
@@ -1003,7 +1027,7 @@ function runFx(g,rise){
     if(!gh){ landFx(fx,true); return false; }
     held=applied; fx2=fx;
   } else if(fresh&&g.lastBy!==S.uid&&g.status==="playing"){
-    fx2={card:g.lastCard,label:g.lastLabel||face(g.lastCard).top,from:g.prevTotal,to:g.total,kind:"hit"};
+    fx2={card:g.lastCard,label:g.lastLabel||face(g.lastCard).top,from:g.prevTotal,to:g.total,kind:fxKind(g.lastCard,g.prevTotal,g.total)};
     nick=nickOf(g,g.lastBy);
     if(reducedMotion()){ landFx(fx2,false,nick); return false; }
     held=true;
