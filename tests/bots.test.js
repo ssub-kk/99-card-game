@@ -4,7 +4,7 @@ const g0 = createGameFactory()();
 const LV = ['easy', 'normal', 'hard'];
 
 function newGame(ids, first) {
-  const deck = g0.shuffle(g0.makeDeck(ids.length === 2)), hands = {}, nicks = {};
+  const deck = g0.shuffle(g0.makeDeck()), hands = {}, nicks = {};
   ids.forEach(id => { hands[id] = []; nicks[id] = id; });
   for (let i = 0; i < 3; i++) ids.forEach(id => hands[id].push(deck.pop()));
   return { status: 'playing', order: ids, hands, deck, discard: [], total: 0, prevTotal: 0,

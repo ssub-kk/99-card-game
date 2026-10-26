@@ -276,8 +276,7 @@ function applyTheme(){ var de=document.documentElement; if(!de||!de.setAttribute
 applyTheme();
 try{ var lv0=localStorage.getItem("g99_lv"); if(lv0==="easy"||lv0==="hard") S.botLevel=lv0; }catch(e){}
 
-var SUITS = ["S","H","D","C"];
-var RANKS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+/* 덱 구성: 1~8 각 3장(24), 10×10, ±9×5, ±10×6, PASS×3, K99×1 = 49장 */
 var MAX_PLAYERS = 6;
 var BOT_NAMES = ["방울봇","물결봇","거품봇"];
 var BLUE="#38b6e8", MINT="#6fd8b0", ORANGE="#ff7a3d";
@@ -286,10 +285,18 @@ var BLUE="#38b6e8", MINT="#6fd8b0", ORANGE="#ff7a3d";
 function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
 function sanitize(c){ return String(c||"").toUpperCase().replace(/[^A-Z0-9_-]/g,"").slice(0,12); }
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
-function rank(c){ return c.slice(0,-1); }
+function rank(c){ return c; }
 function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
-/* no4: 2명일 땐 방향 반대(4)가 의미 없어 덱에서 뺀다 */
-function makeDeck(no4){ var d=[]; SUITS.forEach(function(s){ RANKS.forEach(function(r){ if(!(no4&&r==="4")) d.push(r+s); }); }); return d; }
+function makeDeck(){
+  var d=[];
+  ["1","2","3","4","5","6","7","8"].forEach(function(n){ for(var i=0;i<3;i++) d.push(n); });
+  for(var i=0;i<10;i++) d.push("10");
+  for(var i=0;i<5;i++) d.push("PM9");
+  for(var i=0;i<6;i++) d.push("PM10");
+  for(var i=0;i<3;i++) d.push("PASS");
+  d.push("K99");
+  return d;
+}
 function randCode(){ var s=""; for(var i=0;i<4;i++) s+=Math.floor(Math.random()*10); return s; }
 
 var toastTimer=null;
@@ -301,24 +308,22 @@ function toast(msg){
 function options(card,total){
   var r=rank(card), out=[];
   function add(n,label){ out.push({label:label,total:total+n,over:total+n>99}); }
-  if(r==="A"){ add(1,"+1"); add(11,"+11"); if(total>=1) out.push({label:"−1",total:total-1,over:false}); if(total>=11) out.push({label:"−11",total:total-11,over:false}); }
-  else if(["2","3","5","6","7","8"].indexOf(r)>=0){ add(+r,"+"+r); }
-  else if(r==="4"){ out.push({label:"방향 반대 (±0)",total:total,reverse:true,over:false}); }
-  else if(r==="9"){ out.push({label:"패스 (±0)",total:total,over:false}); }
-  else if(r==="10"){ add(10,"+10"); if(total>=10) out.push({label:"−10",total:total-10,over:false}); }
-  else if(r==="J"||r==="Q"){ add(10,"+10"); }
-  else if(r==="K"){ out.push({label:"합계를 99로",total:99,over:false}); }
+  if(["1","2","3","4","5","6","7","8"].indexOf(r)>=0){ add(+r,"+"+r); }
+  else if(r==="10"){ add(10,"+10"); }
+  else if(r==="PM9"){ add(9,"+9"); if(total>=9) out.push({label:"−9",total:total-9,over:false}); }
+  else if(r==="PM10"){ add(10,"+10"); if(total>=10) out.push({label:"−10",total:total-10,over:false}); }
+  else if(r==="PASS"){ out.push({label:"패스 (±0)",total:total,over:false}); }
+  else if(r==="K99"){ out.push({label:"합계를 99로",total:99,over:false}); }
   return out;
 }
 function isRisky(card,total){ return options(card,total).every(function(o){ return o.over; }); }
 function face(c){
   var r=rank(c);
-  if(r==="A") return {top:"±1",bottom:"±11",drop:BLUE};
-  if(r==="4") return {top:"방향",bottom:"반대",drop:MINT};
-  if(r==="9") return {top:"패스",bottom:"",drop:MINT};
-  if(r==="10") return {top:"±10",bottom:"",drop:BLUE};
-  if(r==="J"||r==="Q") return {top:"+10",bottom:"",drop:BLUE};
-  if(r==="K") return {top:"=99",bottom:"",drop:ORANGE};
+  if(r==="PM9") return {top:"±9",bottom:"",drop:BLUE};
+  if(r==="PM10") return {top:"±10",bottom:"",drop:BLUE};
+  if(r==="PASS") return {top:"패스",bottom:"",drop:MINT};
+  if(r==="K99") return {top:"=99",bottom:"",drop:ORANGE};
+  if(r==="10") return {top:"+10",bottom:"",drop:BLUE};
   return {top:"+"+r,bottom:"",drop:BLUE};
 }
 function liquidColor(t){
@@ -630,7 +635,7 @@ async function startGame(){
   var ps=S.players.slice(0,MAX_PLAYERS);
   if(S.isHostNet) ps=ps.filter(function(p){ return p.id===S.uid||p.on; });
   if(ps.length<2){ toast("2명 이상 모여야 시작할 수 있어요."); return; }
-  var deck=shuffle(makeDeck(ps.length===2)), hands={}, nicks={};
+  var deck=shuffle(makeDeck()), hands={}, nicks={};
   ps.forEach(function(p){ hands[p.id]=[]; nicks[p.id]=p.nick; });
   for(var i=0;i<3;i++) ps.forEach(function(p){ hands[p.id].push(deck.pop()); });
   var order=ps.map(function(p){ return p.id; });
@@ -788,8 +793,9 @@ function wavePath(){
 var WAVE=wavePath();
 function rulesData(){
   return [
-    ["A","+1·+11·−1·−11 중 선택 (−는 합계가 모자라면 불가)"],["2·3·5·6·7·8","숫자만큼 더하기"],["4","방향 반대 (±0) · 2명일 땐 덱에서 빠져요"],
-    ["9","패스 (±0)"],["10","+10 또는 −10"],["J·Q","+10"],["K","합계를 99로"]
+    ["1~8","숫자만큼 더하기"],["10","+10"],
+    ["±9","+9 또는 −9"],["±10","+10 또는 −10"],
+    ["패스","합계 그대로 (±0)"],["99","합계를 99로"]
   ];
 }
 function rulesListHTML(){
@@ -810,8 +816,8 @@ function fxUnlock(){
   if(!S.fx) return;
   try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==="suspended") AC.resume(); }catch(e){}
 }
-/* 효과 종류: over(99 넘김) / suck(빼기 → 스포이드) / pop(±0 → 튕김) / big(K·90 이상) / hit(더하기) */
-function fxKind(card,from,to){ return to>99?"over":to<from?"suck":to===from?"pop":(rank(card)==="K"||to>=90)?"big":"hit"; }
+/* 효과 종류: over(99 넘김) / suck(빼기 → 스포이드) / pop(±0 → 튕김) / big(K99·90 이상) / hit(더하기) */
+function fxKind(card,from,to){ return to>99?"over":to<from?"suck":to===from?"pop":(rank(card)==="K99"||to>=90)?"big":"hit"; }
 var NOISE=null;
 function noiseBuf(){
   if(!NOISE){ var n=AC.sampleRate|0, b=AC.createBuffer(1,n,AC.sampleRate), d=b.getChannelData(0); for(var i=0;i<n;i++) d[i]=Math.random()*2-1; NOISE=b; }
